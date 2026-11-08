@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+work/
+outputs/
+.env
+.env.*
+!.env.example
+.codex/
+.agents/
+*.sqlite
+*.sqlite3
+*.db
+app/build/
+app/dist/
+app/*.spec
+.DS_Store

@@ -1,0 +1,113 @@
+# 项目材料管理
+
+一个在本机运行的项目材料管理工具，用于安排文档准备流程、逐项检查完成情况，并保存每次检查的修改意见与历史记录。
+
+采用 Python、SQLite（本地嵌入式数据库）和网页界面开发。支持浏览器使用，也可以通过 pywebview（网页桌面窗口组件）打开独立窗口。界面资源随程序提供，日常使用无需连接互联网。
+
+## 主要功能
+
+- **项目组管理**：每个项目组使用独立的流程、节点说明和办理记录。
+- **逐项检查**：从任意节点开始，使用上一个、下一个依次检查，支持保存后继续。
+- **多级流程图**：主流程从左到右展示，下级流程向下展开，办理页与流程图可互相定位。
+- **节点配置**：填写节点说明，关联一份或多份文档模板名称，设置所属流程及计划日期。
+- **历史记录**：每次保存生成完整记录，保留当时的模板名称、状态和修改意见。
+- **流程模板与过程库**：创建可复用的流程模板，搜索过程并添加到项目组。
+- **收藏夹**：收藏某个项目组的具体过程，点击即可继续办理。
+- **Excel 导出**：导出各节点最近一次保存的情况，包含横向汇总和逐份文档明细。
+- **本地备份**：导出数据库备份，恢复前自动保存当前数据。
+
+系统记录文档名称、要求和办理情况。文档正文通过使用者原有方式管理。
+
+## 快速启动
+
+需要 Python 3.9 或更高版本。浏览器模式仅依赖 Python 标准库。
+
+```bash
+git clone https://github.com/turambarr/quality-workflow-manager.git
+cd quality-workflow-manager
+python3 app/desktop.py --browser
+```
+
+程序会在本机启动服务并打开默认浏览器。使用期间保留终端窗口，结束时按 `Ctrl+C`。
+
+也可以双击启动脚本：
+
+- macOS（苹果电脑操作系统）：`app/启动工具.command`
+- Windows（微软视窗系统）：`app/启动工具.bat`
+
+Windows 上也可使用 `py -3 app/desktop.py --browser`。启动脚本会优先使用应用目录中的 Python 虚拟环境，找不到时使用系统安装的 Python。
+
+首次打开时会提供一个标明为示例的项目组，可另外创建自己的项目组。预设包括项目组管理的 32 项工作和学院管理的 18 项工作；节点说明、模板名称和办理顺序均可编辑。
+
+## 独立桌面窗口
+
+安装桌面组件后启动：
+
+```bash
+python3 -m pip install -r app/requirements-desktop.txt
+python3 app/desktop.py
+```
+
+依赖清单包含 pywebview 和 PyInstaller（Python 应用打包工具）。尚未安装桌面窗口组件时，程序会使用浏览器打开。
+
+Windows 桌面窗口需要 WebView2（网页显示运行组件）。离线电脑需要提前准备该组件。
+
+## 本地数据
+
+服务仅监听 `127.0.0.1`，数据默认保存在用户的应用数据目录中：
+
+| 系统 | 默认目录 |
+| --- | --- |
+| macOS | `~/Library/Application Support/质量节点/` |
+| Windows | `%LOCALAPPDATA%\质量节点\` |
+| Linux | `$XDG_DATA_HOME/质量节点/`，未设置时使用 `~/.local/share/质量节点/` |
+
+可以指定其他数据目录：
+
+```bash
+python3 app/desktop.py --browser --data-dir ./local-data
+```
+
+也支持 `QUALITY_DATA_DIR` 环境变量。数据库文件与程序分开保存，更新程序时可以继续使用原有数据。通过界面的“数据与备份”导出或恢复备份。
+
+## 测试
+
+运行数据管理与导出测试：
+
+```bash
+python3 -m pip install openpyxl
+python3 -m unittest discover -s app/tests -v
+```
+
+openpyxl（电子表格读取库）用于验证生成的 Excel 文件，应用运行时不需要它。未安装时，相应的读取验证会跳过。
+
+测试覆盖历史记录保存、独立项目组、模板复制、多级流程、归档恢复、写入冲突、数据库升级、备份恢复和 Excel 导出。
+
+## Windows 打包
+
+在 Windows 环境中运行：
+
+```powershell
+cd app
+.\build_windows.ps1
+```
+
+生成结果位于 `app/dist/质量节点/`。分发时复制整个文件夹，运行其中的 `质量节点.exe`。运行电脑无需单独安装 Python。
+
+仓库提供打包脚本；Windows 可执行程序尚未发布，需在目标 Windows 环境完成打包和运行测试。
+
+## 文件结构
+
+```text
+app/
+├── backend.py            数据库、流程与历史记录
+├── server.py             本机服务
+├── desktop.py            桌面窗口与浏览器启动入口
+├── export_xlsx.py        Excel 导出
+├── presets.json          流程预设与示例数据
+├── web/                  网页界面
+├── tests/                数据管理与导出测试
+└── 使用说明.md           操作说明
+```
+
+详细操作见 [使用说明](app/使用说明.md)。
