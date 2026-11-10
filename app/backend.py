@@ -169,6 +169,8 @@ class Store:
         self.csrf_token = secrets.token_urlsafe(32)
         self._connect()
         self.db.executescript(SCHEMA)
+        with self.db:
+            self._drop_legacy_triggers(self.db)
         existing = self.db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         if existing and existing[0] not in ("1", "2", "3", "4", "5", SCHEMA_VERSION):
             self.db.close()
@@ -192,6 +194,13 @@ class Store:
 
     def close(self):
         self.db.close()
+
+    @staticmethod
+    def _drop_legacy_triggers(db):
+        # SCHEMA 里的旧触发器会在每次启动时被 IF NOT EXISTS 重新建出来，必须先清掉，
+        # 否则“同一天再次保存”会被旧触发器拦住。
+        db.execute("DROP TRIGGER IF EXISTS immutable_record_update")
+        db.execute("DROP TRIGGER IF EXISTS immutable_record_delete")
 
     @staticmethod
     def _migrate_database(db):
@@ -805,13 +814,16 @@ class Store:
                 if candidate.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise AppError("备份文件不完整，无法恢复。")
                 version_row = candidate.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-                if version_row is None or version_row[0] not in ("1", "2", "3", "4", SCHEMA_VERSION):
+                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", SCHEMA_VERSION):
                     raise AppError("这个备份的版本与当前程序不兼容。")
                 candidate.execute("PRAGMA query_only=OFF")
+                self._drop_legacy_triggers(candidate)
                 self._migrate_database(candidate)
+                candidate.commit()
                 reference = sqlite3.connect(":memory:")
                 try:
                     reference.executescript(SCHEMA)
+                    self._drop_legacy_triggers(reference)
                     self._migrate_database(reference)
                     expected = reference.execute("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name").fetchall()
                 finally:

@@ -603,6 +603,47 @@ class MigrationTest(unittest.TestCase):
             finally:
                 store.close()
 
+    def test_restoring_v5_backup_upgrades_it(self):
+        with tempfile.TemporaryDirectory() as folder, tempfile.TemporaryDirectory() as target:
+            source = create_v5_database(folder)
+            store = Store(target)
+            try:
+                store.restore_bytes(source.read_bytes())
+                state = store.state()
+                self.assertEqual(state["storage"]["schema_version"], "6")
+                records = state["groups"][0]["nodes"][0]["records"]
+                self.assertEqual([r["day"] for r in records], ["2026-10-03", "2026-10-05"])
+                self.assertEqual([r["note"] for r in records], ["下午", "复查"])
+            finally:
+                store.close()
+
+    def test_restart_does_not_restore_legacy_triggers(self):
+        with tempfile.TemporaryDirectory() as folder:
+            create_v5_database(folder)
+            Store(folder).close()
+            # 模拟一次重启：SCHEMA 的 IF NOT EXISTS 会把旧触发器重新建出来。
+            raw = sqlite3.connect(Path(folder) / "projects.sqlite3")
+            with raw:
+                raw.executescript(SCHEMA)
+            raw.close()
+            store = Store(folder)
+            try:
+                names = {row[0] for row in store.db.execute(
+                    "SELECT name FROM sqlite_master WHERE type='trigger'")}
+                self.assertNotIn("immutable_record_update", names)
+                gid = store.state()["groups"][0]["id"]
+                out = store.mutate("POST", ["groups", gid, "nodes", "v5-node", "records"], {
+                    "expected_version": 2, "author": "王老师", "status": "进行中",
+                    "note": "今天第一次", "documents": []})
+                out = store.mutate("POST", ["groups", gid, "nodes", "v5-node", "records"], {
+                    "expected_version": 3, "author": "王老师", "status": "进行中",
+                    "note": "同一天再改一次", "documents": []})
+                records = out["groups"][0]["nodes"][0]["records"]
+                self.assertEqual(len(records), 3)
+                self.assertEqual(records[-1]["note"], "同一天再改一次")
+            finally:
+                store.close()
+
     def test_restoring_legacy_backup_upgrades_it_and_preserves_current_backup(self):
         with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as target:
             path, snapshot = create_legacy_database(source)
