@@ -57,8 +57,8 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(cells["E3"], "售后")
         self.assertNotIn("F3", cells)
         pane = root.find(".//{{{}}}pane".format(MAIN))
-        self.assertEqual(pane.attrib["topLeftCell"], "D4")
-        self.assertEqual(pane.attrib["xSplit"], "3")
+        self.assertEqual(pane.attrib["topLeftCell"], "C4")
+        self.assertEqual(pane.attrib["xSplit"], "2")
         self.assertIn("导出时间", cells["A2"])
 
     def test_one_row_per_inspection_day_with_status_and_note(self):
@@ -150,8 +150,8 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(workbook.sheetnames, ["节点完成情况", "文档完成情况"])
         self.assertEqual(workbook.worksheets[0]["A1"].value, "=1+1 · 节点完成情况")
         self.assertEqual(workbook.worksheets[0]["A1"].data_type, "s")
-        self.assertEqual(workbook.worksheets[0].freeze_panes, "D4")
-        self.assertEqual(workbook.worksheets[1].freeze_panes, "C4")
+        self.assertEqual(workbook.worksheets[0].freeze_panes, "C4")
+        self.assertEqual(workbook.worksheets[1].freeze_panes, "B4")
         self.assertTrue(workbook.worksheets[0]["D4"].alignment.wrap_text)
         self.assertEqual(workbook.worksheets[0]["D4"].fill.fgColor.rgb, "FFFAE9D9")
 

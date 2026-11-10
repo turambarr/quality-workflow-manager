@@ -397,7 +397,7 @@ def export_workbook(group):
                 done_count += 1
     entries = {
         "xl/styles.xml": _styles(),
-        "xl/worksheets/sheet1.xml": _sheet([14, 16] + [node_width] * len(nodes), node_rows, 3, 3, node_merges),
-        "xl/worksheets/sheet2.xml": _sheet([14] + [node_width] * len(columns), doc_rows, 3, 2),
+        "xl/worksheets/sheet1.xml": _sheet([14, 16] + [node_width] * len(nodes), node_rows, 3, 2, node_merges),
+        "xl/worksheets/sheet2.xml": _sheet([14] + [node_width] * len(columns), doc_rows, 3, 1),
     }
     return _package(entries, exported)
