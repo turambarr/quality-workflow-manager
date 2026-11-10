@@ -1260,8 +1260,8 @@
   "demo_groups": [
     {
       "id": "demo-group",
-      "name": "示例项目组",
-      "teacher": "示例老师",
+      "name": "示例老师",
+      "teacher": "示例学生",
       "description": "用于体验流程图、节点说明和历次记录，内容均为演示数据。",
       "basic_info": {
         "项目名称": "示例项目",

@@ -286,7 +286,7 @@ def export_workbook(group):
     name = _clean(group.get("name", "未命名项目组"))
     teacher = _clean(group.get("teacher", ""))
     width = 3 + len(nodes)
-    headers = [("项目组", 2), ("负责老师", 2), ("导出时间（北京时间）", 2)]
+    headers = [("项目组（老师姓名）", 2), ("对接学生", 2), ("导出时间（北京时间）", 2)]
     template_row = [("项目基本信息", 3), ("", 3), ("", 3)]
     summary_row = [(name, 0), (teacher, 0), (export_time, 0)]
     details = []

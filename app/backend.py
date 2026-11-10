@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 STATUSES = ("未开始", "进行中", "待检查", "需修改", "已完成", "不涉及")
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "5"
 MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
 
@@ -170,10 +170,10 @@ class Store:
         self._connect()
         self.db.executescript(SCHEMA)
         existing = self.db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-        if existing and existing[0] not in ("1", SCHEMA_VERSION):
+        if existing and existing[0] not in ("1", "2", "3", "4", SCHEMA_VERSION):
             self.db.close()
             raise AppError("数据库版本与当前程序不兼容。", 409)
-        if existing and existing[0] == "1":
+        if existing and existing[0] in ("1", "2", "3", "4"):
             self._save_automatic_backup("升级前")
         self._migrate_database(self.db)
         preset_file = Path(presets_path) if presets_path else Path(__file__).resolve().parent / "presets.json"
@@ -197,26 +197,39 @@ class Store:
     def _migrate_database(db):
         version_row = db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         version = version_row[0] if version_row else "1"
-        if version not in ("1", SCHEMA_VERSION):
+        if version not in ("1", "2", "3", "4", SCHEMA_VERSION):
             raise AppError("数据库版本与当前程序不兼容。", 409)
         if version == SCHEMA_VERSION:
             return
         with db:
-            db.execute("ALTER TABLE nodes ADD COLUMN parent_id TEXT")
-            db.execute("ALTER TABLE nodes ADD COLUMN order_index INTEGER NOT NULL DEFAULT 0")
-            db.execute("ALTER TABLE nodes ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0")
-            db.execute("ALTER TABLE nodes ADD COLUMN planned_date TEXT")
-            for group in db.execute("SELECT id FROM groups").fetchall():
-                for index, node in enumerate(db.execute("SELECT id FROM nodes WHERE group_id=? ORDER BY rowid", (group[0],)).fetchall()):
-                    db.execute("UPDATE nodes SET order_index=? WHERE id=?", (index, node[0]))
-            for row in db.execute("SELECT id,nodes FROM templates").fetchall():
-                nodes = json.loads(row[1])
-                for index, node in enumerate(nodes):
-                    node.setdefault("parent_id", None)
-                    node.setdefault("order_index", index)
-                    node.setdefault("planned_date", None)
-                    node.pop("favorite", None)
-                db.execute("UPDATE templates SET nodes=? WHERE id=?", (encode(nodes), row[0]))
+            if version == "1":
+                db.execute("ALTER TABLE nodes ADD COLUMN parent_id TEXT")
+                db.execute("ALTER TABLE nodes ADD COLUMN order_index INTEGER NOT NULL DEFAULT 0")
+                db.execute("ALTER TABLE nodes ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0")
+                db.execute("ALTER TABLE nodes ADD COLUMN planned_date TEXT")
+                for group in db.execute("SELECT id FROM groups").fetchall():
+                    for index, node in enumerate(db.execute("SELECT id FROM nodes WHERE group_id=? ORDER BY rowid", (group[0],)).fetchall()):
+                        db.execute("UPDATE nodes SET order_index=? WHERE id=?", (index, node[0]))
+                for row in db.execute("SELECT id,nodes FROM templates").fetchall():
+                    nodes = json.loads(row[1])
+                    for index, node in enumerate(nodes):
+                        node.setdefault("parent_id", None)
+                        node.setdefault("order_index", index)
+                        node.setdefault("planned_date", None)
+                        node.pop("favorite", None)
+                    db.execute("UPDATE templates SET nodes=? WHERE id=?", (encode(nodes), row[0]))
+            if version in ("1", "2"):
+                db.execute(
+                    "CREATE TABLE IF NOT EXISTS folders ("
+                    "id TEXT PRIMARY KEY, name TEXT NOT NULL,"
+                    " order_index INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)"
+                )
+                db.execute("ALTER TABLE groups ADD COLUMN folder_id TEXT")
+            if version in ("1", "2", "3"):
+                db.execute("ALTER TABLE groups ADD COLUMN archived INTEGER NOT NULL DEFAULT 0")
+            # 版本 5：项目组不再单独命名，直接用老师姓名作名称；原来的老师字段改为对接学生。
+            if version in ("1", "2", "3", "4"):
+                db.execute("UPDATE groups SET name=teacher, teacher='' WHERE TRIM(teacher)<>''")
             db.execute("INSERT OR REPLACE INTO metadata VALUES ('schema_version', ?)", (SCHEMA_VERSION,))
 
     def _save_automatic_backup(self, prefix):
@@ -235,9 +248,9 @@ class Store:
                              text(entry.get("description", ""), "流程模板说明"), encode(nodes), encode(edges)))
         for entry in preset.get("demo_groups", []):
             gid = entry.get("id") or new_id()
-            self.db.execute("INSERT INTO groups VALUES (?,?,?,?,?,?,?,?)", (
+            self.db.execute("INSERT INTO groups (id,name,teacher,description,basic_info,is_demo,created_at,updated_at,folder_id) VALUES (?,?,?,?,?,1,?,?,NULL)", (
                 gid, entry["name"], entry.get("teacher", ""), entry.get("description", ""),
-                encode(entry.get("basic_info", {})), 1, entry.get("created_at", now()), entry.get("updated_at", now())))
+                encode(entry.get("basic_info", {})), entry.get("created_at", now()), entry.get("updated_at", now())))
             nodes, edges = self._validate_flow(entry.get("nodes", []), entry.get("edges", []))
             originals = {n.get("id"): n for n in entry.get("nodes", [])}
             for node in nodes:
@@ -376,13 +389,14 @@ class Store:
     def state(self):
         with self.lock:
             groups = [self._get_group(r[0]) for r in self.db.execute("SELECT id FROM groups ORDER BY rowid")]
+            folders = [dict(r) for r in self.db.execute("SELECT * FROM folders ORDER BY order_index, rowid")]
             templates = []
             for row in self.db.execute("SELECT * FROM templates ORDER BY rowid"):
                 entry = dict(row)
                 entry["nodes"], entry["edges"] = json.loads(entry["nodes"]), json.loads(entry["edges"])
                 entry["is_preset"] = bool(entry["is_preset"])
                 templates.append(entry)
-            return {"groups": groups, "templates": templates, "csrf_token": self.csrf_token,
+            return {"groups": groups, "folders": folders, "templates": templates, "csrf_token": self.csrf_token,
                     "storage": {"path": str(self.path), "mode": "local", "schema_version": SCHEMA_VERSION}}
 
     def mutate(self, method, parts, data):
@@ -392,6 +406,14 @@ class Store:
         return self.state()
 
     def _mutate(self, method, parts, data):
+        if parts and parts[0] == "folders":
+            if parts == ["folders"] and method == "POST":
+                return self._create_folder(data)
+            if len(parts) == 2 and method == "PUT":
+                return self._rename_folder(parts[1], data)
+            if len(parts) == 2 and method == "DELETE":
+                return self._delete_folder(parts[1])
+            raise AppError("没有找到这个操作。", 404)
         if parts == ["groups"] and method == "POST":
             return self._create_group(data)
         if parts and parts[0] == "templates":
@@ -409,11 +431,16 @@ class Store:
             self._touch(gid)
             return
         if len(parts) == 2 and method == "PUT":
-            name = text(data.get("name", group["name"]), "项目组名称", True, 200)
-            teacher = text(data.get("teacher", group["teacher"]), "负责老师", limit=200)
+            name = text(data.get("name", group["name"]), "老师姓名", True, 200)
+            teacher = text(data.get("teacher", group["teacher"]), "对接学生姓名", limit=200)
             description = text(data.get("description", group["description"]), "项目组说明")
             info = basic_info(data.get("basic_info", group["basic_info"]))
-            self.db.execute("UPDATE groups SET name=?,teacher=?,description=?,basic_info=?,updated_at=? WHERE id=?", (name, teacher, description, encode(info), now(), gid))
+            folder_id = self._folder_id(data.get("folder_id", group["folder_id"]))
+            archived = 1 if boolean(data.get("archived", bool(group["archived"])), "归档状态") else 0
+            self.db.execute("UPDATE groups SET name=?,teacher=?,description=?,basic_info=?,folder_id=?,archived=?,updated_at=? WHERE id=?", (name, teacher, description, encode(info), folder_id, archived, now(), gid))
+            return
+        if len(parts) == 2 and method == "DELETE":
+            self._delete_group(gid)
             return
         if len(parts) == 3 and parts[2] == "nodes" and method == "POST":
             if len(group["nodes"]) >= 500:
@@ -558,15 +585,58 @@ class Store:
             self.db.execute("INSERT INTO edges VALUES (?,?,?,?)", (edge["id"], gid, edge["source"], edge["target"]))
         self._remove_invalid_edges(gid)
 
+    def _delete_group(self, gid):
+        saved = self.db.execute("SELECT COUNT(*) FROM records r JOIN nodes n ON n.id=r.node_id WHERE n.group_id=?", (gid,)).fetchone()[0]
+        if saved:
+            raise AppError("这个项目组已经有情况记录，不能删除；可以改为归档，记录会继续保留。", 409)
+        self.db.execute("DELETE FROM edges WHERE group_id=?", (gid,))
+        self.db.execute("DELETE FROM nodes WHERE group_id=?", (gid,))
+        self.db.execute("DELETE FROM groups WHERE id=?", (gid,))
+
+    def _folder_id(self, value):
+        if value is None or value == "":
+            return None
+        if not isinstance(value, str):
+            raise AppError("所属文件夹格式不正确。")
+        if self.db.execute("SELECT 1 FROM folders WHERE id=?", (value,)).fetchone() is None:
+            raise AppError("找不到选择的文件夹。", 404)
+        return value
+
+    def _create_folder(self, data):
+        if self.db.execute("SELECT COUNT(*) FROM folders").fetchone()[0] >= 200:
+            raise AppError("文件夹数量已达到上限。")
+        name = text(data.get("name", ""), "文件夹名称", True, 200)
+        if self.db.execute("SELECT 1 FROM folders WHERE name=?", (name,)).fetchone():
+            raise AppError("已经有同名文件夹。")
+        order = self.db.execute("SELECT COALESCE(MAX(order_index), -1) + 1 FROM folders").fetchone()[0]
+        self.db.execute("INSERT INTO folders VALUES (?,?,?,?)", (new_id(), name, order, now()))
+
+    def _rename_folder(self, fid, data):
+        row = self.db.execute("SELECT * FROM folders WHERE id=?", (fid,)).fetchone()
+        if row is None:
+            raise AppError("找不到这个文件夹。", 404)
+        name = text(data.get("name", row["name"]), "文件夹名称", True, 200)
+        if self.db.execute("SELECT 1 FROM folders WHERE name=? AND id<>?", (name, fid)).fetchone():
+            raise AppError("已经有同名文件夹。")
+        self.db.execute("UPDATE folders SET name=? WHERE id=?", (name, fid))
+
+    def _delete_folder(self, fid):
+        if self.db.execute("SELECT 1 FROM folders WHERE id=?", (fid,)).fetchone() is None:
+            raise AppError("找不到这个文件夹。", 404)
+        self.db.execute("UPDATE groups SET folder_id=NULL, updated_at=? WHERE folder_id=?", (now(), fid))
+        self.db.execute("DELETE FROM folders WHERE id=?", (fid,))
+
     def _create_group(self, data):
         if self.db.execute("SELECT COUNT(*) FROM groups").fetchone()[0] >= 1000:
             raise AppError("项目组数量已达到上限。")
-        name = text(data.get("name", ""), "项目组名称", True, 200)
-        teacher = text(data.get("teacher", ""), "负责老师", limit=200)
+        name = text(data.get("name", ""), "老师姓名", True, 200)
+        teacher = text(data.get("teacher", ""), "对接学生姓名", limit=200)
         description = text(data.get("description", ""), "项目组说明")
         info = basic_info(data.get("basic_info", {}))
+        folder_id = self._folder_id(data.get("folder_id"))
         gid, stamp = new_id(), now()
-        self.db.execute("INSERT INTO groups VALUES (?,?,?,?,?,0,?,?)", (gid, name, teacher, description, encode(info), stamp, stamp))
+        self.db.execute("INSERT INTO groups (id,name,teacher,description,basic_info,is_demo,created_at,updated_at,folder_id) VALUES (?,?,?,?,?,0,?,?,?)",
+                        (gid, name, teacher, description, encode(info), stamp, stamp, folder_id))
         template_id = data.get("template_id")
         if template_id:
             if not isinstance(template_id, str):
@@ -676,13 +746,14 @@ class Store:
                 if candidate.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise AppError("备份文件不完整，无法恢复。")
                 version_row = candidate.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-                if version_row is None or version_row[0] not in ("1", SCHEMA_VERSION):
+                if version_row is None or version_row[0] not in ("1", "2", "3", "4", SCHEMA_VERSION):
                     raise AppError("这个备份的版本与当前程序不兼容。")
+                candidate.execute("PRAGMA query_only=OFF")
+                self._migrate_database(candidate)
                 reference = sqlite3.connect(":memory:")
                 try:
                     reference.executescript(SCHEMA)
-                    if version_row[0] == SCHEMA_VERSION:
-                        self._migrate_database(reference)
+                    self._migrate_database(reference)
                     expected = reference.execute("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name").fetchall()
                 finally:
                     reference.close()
@@ -699,8 +770,6 @@ class Store:
                     for column in columns:
                         for row in candidate.execute(f"SELECT {column} FROM {table}"):
                             json.loads(row[0])
-                candidate.execute("PRAGMA query_only=OFF")
-                self._migrate_database(candidate)
                 for row in candidate.execute("SELECT nodes,edges FROM templates"):
                     self._validate_flow(json.loads(row[0]), json.loads(row[1]))
                 fields = ("id", "title", "description", "category", "x", "y", "templates", "archived", "parent_id", "order_index", "favorite", "planned_date")

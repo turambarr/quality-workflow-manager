@@ -308,6 +308,131 @@ class RecordsTest(unittest.TestCase):
         self.assertTrue(all(not n["favorite"] for n in copied))
 
 
+class FolderTest(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.empty = Path(self.folder.name) / "empty.json"
+        self.empty.write_text('{"templates":[],"demo_groups":[]}', encoding="utf-8")
+        self.store = Store(self.folder.name, self.empty)
+        state = self.store.mutate("POST", ["groups"], {"name": "采购组"})
+        self.gid = state["groups"][0]["id"]
+
+    def tearDown(self):
+        self.store.close()
+        self.folder.cleanup()
+
+    def test_folders_organize_groups_without_touching_records(self):
+        state = self.store.mutate("POST", ["folders"], {"name": "2026 级"})
+        fid = state["folders"][0]["id"]
+        state = self.store.mutate("PUT", ["folders", fid], {"name": "2026 届"})
+        self.assertEqual(state["folders"][0]["name"], "2026 届")
+        state = self.store.mutate("PUT", ["groups", self.gid], {"folder_id": fid})
+        self.assertEqual(state["groups"][0]["folder_id"], fid)
+        state = self.store.mutate("DELETE", ["folders", fid], {})
+        self.assertEqual(state["folders"], [])
+        self.assertIsNone(state["groups"][0]["folder_id"])
+
+    def test_unknown_folder_rejected(self):
+        with self.assertRaises(AppError):
+            self.store.mutate("PUT", ["groups", self.gid], {"folder_id": "missing"})
+        with self.assertRaises(AppError):
+            self.store.mutate("POST", ["groups"], {"name": "另一个组", "folder_id": "missing"})
+
+    def test_folder_name_must_be_present_and_unique(self):
+        self.store.mutate("POST", ["folders"], {"name": "归档"})
+        with self.assertRaises(AppError):
+            self.store.mutate("POST", ["folders"], {"name": "归档"})
+        with self.assertRaises(AppError):
+            self.store.mutate("POST", ["folders"], {"name": "  "})
+
+    def test_folders_survive_restart_and_backup(self):
+        state = self.store.mutate("POST", ["folders"], {"name": "备用"})
+        fid = state["folders"][0]["id"]
+        self.store.mutate("PUT", ["groups", self.gid], {"folder_id": fid})
+        payload = self.store.backup_bytes()
+        self.store.close()
+        self.store = Store(self.folder.name, self.empty)
+        self.assertEqual(self.store.state()["folders"][0]["id"], fid)
+        self.assertEqual(self.store.state()["groups"][0]["folder_id"], fid)
+        other = tempfile.TemporaryDirectory()
+        try:
+            empty = Path(other.name) / "empty.json"
+            empty.write_text('{"templates":[],"demo_groups":[]}', encoding="utf-8")
+            store = Store(other.name, empty)
+            try:
+                restored = store.restore_bytes(payload)
+                self.assertEqual(restored["folders"][0]["name"], "备用")
+                self.assertEqual(restored["groups"][0]["folder_id"], fid)
+            finally:
+                store.close()
+        finally:
+            other.cleanup()
+
+
+    def test_group_archive_and_restore(self):
+        state = self.store.mutate("PUT", ["groups", self.gid], {"archived": True})
+        self.assertTrue(state["groups"][0]["archived"])
+        state = self.store.mutate("PUT", ["groups", self.gid], {"archived": False})
+        self.assertFalse(state["groups"][0]["archived"])
+        self.assertEqual(state["groups"][0]["name"], "采购组")
+
+    def test_group_with_records_cannot_be_deleted(self):
+        state = self.store.mutate("POST", ["groups", self.gid, "nodes"], {"title": "节点", "templates": []})
+        nid = state["groups"][0]["nodes"][0]["id"]
+        self.store.mutate("POST", ["groups", self.gid, "nodes", nid, "records"], {"expected_version": 0, "author": "老师", "status": "已完成"})
+        with self.assertRaises(AppError) as caught:
+            self.store.mutate("DELETE", ["groups", self.gid], {})
+        self.assertEqual(caught.exception.status, 409)
+        self.assertEqual(len(self.store.state()["groups"]), 1)
+
+    def test_group_without_records_can_be_deleted(self):
+        state = self.store.mutate("POST", ["groups"], {"name": "临时项目组"})
+        gid = [g["id"] for g in state["groups"] if g["name"] == "临时项目组"][0]
+        store = self.store.mutate("DELETE", ["groups", gid], {})
+        self.assertEqual([g["id"] for g in store["groups"]], [self.gid])
+
+
+def create_v3_database(folder):
+    path = Path(folder) / "projects.sqlite3"
+    con = sqlite3.connect(path)
+    con.executescript(SCHEMA)
+    con.execute("CREATE TABLE folders (id TEXT PRIMARY KEY, name TEXT NOT NULL, order_index INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)")
+    con.execute("ALTER TABLE groups ADD COLUMN folder_id TEXT")
+    con.execute("ALTER TABLE nodes ADD COLUMN parent_id TEXT")
+    con.execute("ALTER TABLE nodes ADD COLUMN order_index INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN planned_date TEXT")
+    con.execute("INSERT INTO metadata VALUES ('schema_version','3')")
+    con.execute("INSERT INTO metadata VALUES ('initialized','1')")
+    con.execute("INSERT INTO folders VALUES ('old-folder','旧文件夹',0,'2026-10-01T09:00:00+08:00')")
+    con.execute("INSERT INTO groups VALUES ('v3-group','三版项目组','老师','说明','{}',0,'2026-10-01T09:00:00+08:00','2026-10-02T09:00:00+08:00','old-folder')")
+    con.execute("INSERT INTO nodes VALUES ('v3-node','v3-group','节点','说明','材料',0,0,'[]',0,NULL,0,0,NULL)")
+    con.commit()
+    con.close()
+    return path
+
+
+def create_v4_database(folder):
+    path = Path(folder) / "projects.sqlite3"
+    con = sqlite3.connect(path)
+    con.executescript(SCHEMA)
+    con.execute("CREATE TABLE folders (id TEXT PRIMARY KEY, name TEXT NOT NULL, order_index INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)")
+    con.execute("ALTER TABLE groups ADD COLUMN folder_id TEXT")
+    con.execute("ALTER TABLE groups ADD COLUMN archived INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN parent_id TEXT")
+    con.execute("ALTER TABLE nodes ADD COLUMN order_index INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN planned_date TEXT")
+    con.execute("INSERT INTO metadata VALUES ('schema_version','4')")
+    con.execute("INSERT INTO metadata VALUES ('initialized','1')")
+    con.execute("INSERT INTO folders VALUES ('old-folder','旧文件夹',0,'2026-10-01T09:00:00+08:00')")
+    con.execute("INSERT INTO groups VALUES ('v4-group','四版项目组','四老师','说明','{}',0,'2026-10-01T09:00:00+08:00','2026-10-02T09:00:00+08:00','old-folder',0)")
+    con.execute("INSERT INTO nodes VALUES ('v4-node','v4-group','节点','说明','材料',0,0,'[]',0,NULL,0,0,NULL)")
+    con.commit()
+    con.close()
+    return path
+
+
 def create_legacy_database(folder):
     path = Path(folder) / "projects.sqlite3"
     con = sqlite3.connect(path)
@@ -333,9 +458,10 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "2")
+                self.assertEqual(state["storage"]["schema_version"], "5")
                 self.assertEqual(len(state["groups"]), 1)
-                self.assertEqual(state["groups"][0]["name"], "原有项目组")
+                self.assertEqual(state["groups"][0]["name"], "原老师")
+                self.assertEqual(state["groups"][0]["teacher"], "")
                 node = state["groups"][0]["nodes"][0]
                 self.assertEqual(node["records"], [snapshot])
                 self.assertEqual((node["parent_id"], node["order_index"], node["favorite"], node["planned_date"]), (None, 0, False, None))
@@ -350,7 +476,41 @@ class MigrationTest(unittest.TestCase):
                 store.close()
             reopened = Store(folder)
             self.assertEqual(len(reopened.state()["groups"]), 2)
+            self.assertEqual(reopened.state()["groups"][0]["name"], "原老师")
+            self.assertEqual(len(list((Path(folder) / "backups").glob("升级前-*.sqlite3"))), 1)
             reopened.close()
+
+    def test_v3_database_gets_archived_column(self):
+        with tempfile.TemporaryDirectory() as folder:
+            create_v3_database(folder)
+            store = Store(folder)
+            try:
+                state = store.state()
+                self.assertEqual(state["storage"]["schema_version"], "5")
+                self.assertFalse(state["groups"][0]["archived"])
+                self.assertEqual(state["groups"][0]["folder_id"], "old-folder")
+                self.assertEqual(state["folders"][0]["name"], "旧文件夹")
+                self.assertEqual(state["groups"][0]["name"], "老师")
+                self.assertEqual(state["groups"][0]["teacher"], "")
+                self.assertEqual(len(list((Path(folder) / "backups").glob("升级前-*.sqlite3"))), 1)
+            finally:
+                store.close()
+
+    def test_v4_database_uses_teacher_name_for_group(self):
+        with tempfile.TemporaryDirectory() as folder:
+            create_v4_database(folder)
+            store = Store(folder)
+            try:
+                state = store.state()
+                self.assertEqual(state["storage"]["schema_version"], "5")
+                group = state["groups"][0]
+                self.assertEqual(group["name"], "四老师")
+                self.assertEqual(group["teacher"], "")
+                self.assertEqual(group["folder_id"], "old-folder")
+                self.assertFalse(group["archived"])
+                self.assertEqual(len(list((Path(folder) / "backups").glob("升级前-*.sqlite3"))), 1)
+            finally:
+                store.close()
 
     def test_restoring_legacy_backup_upgrades_it_and_preserves_current_backup(self):
         with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as target:
@@ -360,7 +520,7 @@ class MigrationTest(unittest.TestCase):
                 store.mutate("POST", ["groups"], {"name": "恢复前项目"})
                 before = copy.deepcopy(store.state()["groups"])
                 state = store.restore_bytes(path.read_bytes())
-                self.assertEqual(state["storage"]["schema_version"], "2")
+                self.assertEqual(state["storage"]["schema_version"], "5")
                 self.assertEqual(state["groups"][0]["nodes"][0]["records"], [snapshot])
                 backups = list((Path(target) / "backups").glob("恢复前-*.sqlite3"))
                 self.assertEqual(len(backups), 1)
