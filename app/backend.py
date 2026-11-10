@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 STATUSES = ("未开始", "进行中", "待检查", "需修改", "已完成", "不涉及")
-SCHEMA_VERSION = "5"
+SCHEMA_VERSION = "6"
 MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
 
@@ -170,10 +170,10 @@ class Store:
         self._connect()
         self.db.executescript(SCHEMA)
         existing = self.db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-        if existing and existing[0] not in ("1", "2", "3", "4", SCHEMA_VERSION):
+        if existing and existing[0] not in ("1", "2", "3", "4", "5", SCHEMA_VERSION):
             self.db.close()
             raise AppError("数据库版本与当前程序不兼容。", 409)
-        if existing and existing[0] in ("1", "2", "3", "4"):
+        if existing and existing[0] in ("1", "2", "3", "4", "5"):
             self._save_automatic_backup("升级前")
         self._migrate_database(self.db)
         preset_file = Path(presets_path) if presets_path else Path(__file__).resolve().parent / "presets.json"
@@ -197,7 +197,7 @@ class Store:
     def _migrate_database(db):
         version_row = db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         version = version_row[0] if version_row else "1"
-        if version not in ("1", "2", "3", "4", SCHEMA_VERSION):
+        if version not in ("1", "2", "3", "4", "5", SCHEMA_VERSION):
             raise AppError("数据库版本与当前程序不兼容。", 409)
         if version == SCHEMA_VERSION:
             return
@@ -230,7 +230,47 @@ class Store:
             # 版本 5：项目组不再单独命名，直接用老师姓名作名称；原来的老师字段改为对接学生。
             if version in ("1", "2", "3", "4"):
                 db.execute("UPDATE groups SET name=teacher, teacher='' WHERE TRIM(teacher)<>''")
+            # 版本 6：一条记录对应一个检查日期，同一天再次保存时更新当天的记录。
+            if version in ("1", "2", "3", "4", "5"):
+                Store._migrate_records_to_days(db)
             db.execute("INSERT OR REPLACE INTO metadata VALUES ('schema_version', ?)", (SCHEMA_VERSION,))
+
+    @staticmethod
+    def _migrate_records_to_days(db):
+        """把旧记录整理成“每个节点每天一条”，并允许当天记录被再次保存覆盖。"""
+        db.execute("DROP TRIGGER IF EXISTS immutable_record_update")
+        db.execute("DROP TRIGGER IF EXISTS immutable_record_delete")
+        columns = {row[1] for row in db.execute("PRAGMA table_info(records)")}
+        if "day" not in columns:
+            db.execute("ALTER TABLE records ADD COLUMN day TEXT")
+        rows = db.execute("SELECT id,node_id,version,snapshot FROM records ORDER BY node_id, version, rowid").fetchall()
+        parsed, keep = [], {}
+        for rid, nid, version, snapshot in rows:
+            record = json.loads(snapshot)
+            day = str(record.get("created_at") or "")[:10] or datetime.now().astimezone().date().isoformat()
+            parsed.append((rid, nid, version, record, day))
+            keep[(nid, day)] = rid  # 同一天里版本更大的（后保存的）留下
+        kept = set(keep.values())
+        for rid, nid, version, record, day in parsed:
+            if rid not in kept:
+                db.execute("DELETE FROM records WHERE id=?", (rid,))
+        counters = {}
+        for rid, nid, version, record, day in parsed:
+            if rid not in kept:
+                continue
+            counters[nid] = counters.get(nid, 0) + 1
+            record["version"] = counters[nid]
+            record["day"] = day
+            db.execute("UPDATE records SET version=?, day=?, snapshot=? WHERE id=?",
+                       (record["version"], day, encode(record), rid))
+        db.execute(
+            "CREATE TRIGGER IF NOT EXISTS record_update_guard BEFORE UPDATE ON records "
+            "WHEN OLD.day <> date('now','localtime') BEGIN SELECT RAISE(ABORT, '历史记录不可修改'); END"
+        )
+        db.execute(
+            "CREATE TRIGGER IF NOT EXISTS record_delete_guard BEFORE DELETE ON records "
+            "BEGIN SELECT RAISE(ABORT, 'Saved records cannot be deleted'); END"
+        )
 
     def _save_automatic_backup(self, prefix):
         folder = self.data_dir / "backups"
@@ -374,7 +414,12 @@ class Store:
         node["templates"] = json.loads(node["templates"])
         node["archived"] = bool(node["archived"])
         node["favorite"] = bool(node["favorite"])
-        node["records"] = [json.loads(r[0]) for r in self.db.execute("SELECT snapshot FROM records WHERE node_id=? ORDER BY version", (node["id"],))]
+        node["records"] = []
+        for row in self.db.execute("SELECT version, day, snapshot FROM records WHERE node_id=? ORDER BY version", (node["id"],)):
+            record = json.loads(row["snapshot"])
+            record["version"] = row["version"]
+            record["day"] = row["day"] or str(record.get("created_at") or "")[:10]
+            node["records"].append(record)
         return node
 
     def _get_node(self, gid, nid):
@@ -662,11 +707,13 @@ class Store:
         node = self._get_node(gid, nid)
         if node["archived"]:
             raise AppError("请先恢复归档节点，再记录完成情况。")
-        version = len(node["records"])
+        records = node["records"]
+        current = records[-1] if records else None
+        current_version = current["version"] if current else 0
         expected = data.get("expected_version")
         if isinstance(expected, bool) or not isinstance(expected, int):
             raise AppError("缺少当前记录版本，请重新打开节点后保存。", 409)
-        if expected != version:
+        if expected != current_version:
             raise AppError("这个节点已有新的记录，请刷新后再保存。", 409)
         author = text(data.get("author", ""), "记录人", True, 200)
         status = data.get("status", "未开始")
@@ -677,7 +724,7 @@ class Store:
         if not isinstance(updates, list) or len(updates) > 200:
             raise AppError("文档情况格式不正确。")
         names = {d["id"]: d["name"] for d in node["templates"]}
-        previous = {d["template_id"]: d for d in node["records"][-1]["documents"]} if version else {}
+        previous = {d["template_id"]: d for d in current["documents"]} if current else {}
         supplied = {}
         for item in updates:
             object_value(item, "文档情况")
@@ -693,10 +740,22 @@ class Store:
         for ident, name in names.items():
             value = supplied.get(ident, previous.get(ident, {"status": "未开始", "note": ""}))
             documents.append({"template_id": ident, "name": name, "status": value["status"], "note": value["note"]})
-        snapshot = {"id": new_id(), "version": version + 1, "created_at": created_at or now(),
+        stamp = created_at or now()
+        day = stamp[:10]
+        same_day = bool(current) and current.get("day") == day
+        if same_day and (author == current.get("author") and status == current.get("status")
+                         and note == current.get("note") and documents == current.get("documents")):
+            raise AppError("这次没有改动，不需要保存。")
+        snapshot = {"id": new_id(), "version": current_version + 1, "created_at": stamp, "day": day,
                     "author": author, "status": status, "note": note, "documents": documents,
                     "node_title": node["title"], "node_description": node["description"]}
-        self.db.execute("INSERT INTO records VALUES (?,?,?,?)", (snapshot["id"], nid, version + 1, encode(snapshot)))
+        if same_day:
+            snapshot["id"] = current["id"]
+            snapshot["version"] = current_version
+            self.db.execute("UPDATE records SET snapshot=? WHERE id=?", (encode(snapshot), current["id"]))
+        else:
+            self.db.execute("INSERT INTO records (id,node_id,version,snapshot,day) VALUES (?,?,?,?,?)",
+                            (snapshot["id"], nid, snapshot["version"], encode(snapshot), day))
 
     def _template_mutation(self, method, parts, data):
         if method == "POST" and len(parts) == 1:

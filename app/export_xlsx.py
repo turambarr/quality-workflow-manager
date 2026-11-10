@@ -16,7 +16,7 @@ CONTENT = "http://schemas.openxmlformats.org/package/2006/content-types"
 XML_SPACE = "{http://www.w3.org/XML/1998/namespace}space"
 CHINA_TIME = timezone(timedelta(hours=8))
 CELL_LIMIT = 32767
-REMARK = "本表按各节点最近一次保存的情况汇总。各节点的记录时间可能不同，请结合记录时间和版本查看。"
+REMARK = "每行是一天（一次检查）。同一天再次保存会更新当天的情况；空白表示当天没有检查到这一项。"
 ET.register_namespace("", MAIN)
 ET.register_namespace("r", REL)
 
@@ -136,11 +136,7 @@ def _column(number):
 
 
 def _status_style(status):
-    if status == "已完成":
-        return 5
-    if status == "需修改":
-        return 6
-    return 0
+    return {"已完成": 5, "需修改": 6, "进行中": 8, "待检查": 9}.get(status, 0)
 
 
 def _cell(row, column, value, style=0):
@@ -151,15 +147,15 @@ def _cell(row, column, value, style=0):
     text.text = _cell_text(value)
 
 
-def _sheet(widths, rows, freeze_rows, merges=None, autofilter=None):
+def _sheet(widths, rows, freeze_rows, freeze_cols=3, merges=None, autofilter=None):
     sheet = ET.Element(_tag("worksheet"))
     ET.SubElement(sheet, _tag("dimension"), ref="A1:{}{}".format(_column(len(widths)), max(1, len(rows))))
     views = ET.SubElement(sheet, _tag("sheetViews"))
     view = ET.SubElement(views, _tag("sheetView"), workbookViewId="0", showGridLines="0")
-    ET.SubElement(view, _tag("pane"), xSplit="3", ySplit=str(freeze_rows),
-                  topLeftCell="D{}".format(freeze_rows + 1), activePane="bottomRight", state="frozen")
-    ET.SubElement(view, _tag("selection"), pane="bottomRight", activeCell="D{}".format(freeze_rows + 1),
-                  sqref="D{}".format(freeze_rows + 1))
+    corner = "{}{}".format(_column(freeze_cols + 1), freeze_rows + 1)
+    ET.SubElement(view, _tag("pane"), xSplit=str(freeze_cols), ySplit=str(freeze_rows),
+                  topLeftCell=corner, activePane="bottomRight", state="frozen")
+    ET.SubElement(view, _tag("selection"), pane="bottomRight", activeCell=corner, sqref=corner)
     ET.SubElement(sheet, _tag("sheetFormatPr"), defaultRowHeight="22")
     columns = ET.SubElement(sheet, _tag("cols"))
     for i, width in enumerate(widths, 1):
@@ -194,10 +190,11 @@ def _styles():
         ET.SubElement(font, _tag("name"), val="微软雅黑")
         if bold:
             ET.SubElement(font, _tag("b"))
-    fills = ET.SubElement(styles, _tag("fills"), count="7")
+    fills = ET.SubElement(styles, _tag("fills"), count="9")
     for pattern, color in (("none", None), ("gray125", None), ("solid", "FFFFF3D9"),
                             ("solid", "FFFFFAEF"), ("solid", "FFF4F2ED"),
-                            ("solid", "FFE7F0E7"), ("solid", "FFFAE9D9")):
+                            ("solid", "FFE7F0E7"), ("solid", "FFFAE9D9"),
+                            ("solid", "FFEAF0F4"), ("solid", "FFF6EDDD")):
         fill = ET.SubElement(fills, _tag("fill"))
         properties = ET.SubElement(fill, _tag("patternFill"), patternType=pattern)
         if color:
@@ -212,8 +209,8 @@ def _styles():
                 ET.SubElement(edge, _tag("color"), rgb="FFDDD9CF")
     base = ET.SubElement(styles, _tag("cellStyleXfs"), count="1")
     ET.SubElement(base, _tag("xf"), numFmtId="0", fontId="0", fillId="0", borderId="0")
-    formats = ET.SubElement(styles, _tag("cellXfs"), count="8")
-    for font_id, fill_id in ((0, 0), (1, 2), (2, 2), (0, 3), (0, 4), (0, 5), (0, 6), (3, 4)):
+    formats = ET.SubElement(styles, _tag("cellXfs"), count="10")
+    for font_id, fill_id in ((0, 0), (1, 2), (2, 2), (0, 3), (0, 4), (0, 5), (0, 6), (3, 4), (0, 7), (0, 8)):
         xf = ET.SubElement(formats, _tag("xf"), numFmtId="0", fontId=str(font_id), fillId=str(fill_id),
                            borderId="1", xfId="0", applyAlignment="1", applyFill="1", applyFont="1", applyBorder="1")
         ET.SubElement(xf, _tag("alignment"), vertical="top", wrapText="1")
@@ -246,7 +243,7 @@ def _package(entries, exported):
     workbook = ET.Element(_tag("workbook"))
     sheets = ET.SubElement(workbook, _tag("sheets"))
     workbook_relationships = ET.Element("{{{}}}Relationships".format(PACKAGE_REL))
-    for i, name in enumerate(("节点情况汇总", "文档明细"), 1):
+    for i, name in enumerate(("节点完成情况", "文档完成情况"), 1):
         ET.SubElement(sheets, _tag("sheet"), {"name": name, "sheetId": str(i), "{{{}}}id".format(REL): "rId{}".format(i)})
         ET.SubElement(workbook_relationships, "{{{}}}Relationship".format(PACKAGE_REL),
                       Id="rId{}".format(i), Target="worksheets/sheet{}.xml".format(i), Type=REL + "/worksheet")
@@ -276,58 +273,131 @@ def _package(entries, exported):
     return output.getvalue()
 
 
+def _record_day(record):
+    label = str(record.get("day") or "")[:10]
+    if label:
+        return label
+    return str(record.get("created_at") or "")[:10]
+
+
+def _dated_records(nodes):
+    """按检查日期归并各节点记录：{日期: {节点 id: 当天记录}}。"""
+    days = {}
+    for node, _path in nodes:
+        for record in node.get("records", []):
+            if not isinstance(record, dict):
+                continue
+            day = _record_day(record)
+            if not day:
+                continue
+            days.setdefault(day, {})[node.get("id")] = record
+    return days
+
+
+def _note_text(record):
+    if not record:
+        return ""
+    status = _clean(record.get("status", "未开始"))
+    note = _clean(record.get("note", ""))
+    return status + ("\n" + note if note else "")
+
+
+def _document_columns(nodes):
+    columns, seen = [], set()
+    for node, path in nodes:
+        node_id = node.get("id")
+        for template in node.get("templates", []):
+            ident = template.get("id")
+            if (node_id, ident) in seen:
+                continue
+            seen.add((node_id, ident))
+            columns.append((node, path, ident, template.get("name", "")))
+        for record in node.get("records", []):
+            for document in record.get("documents", []):
+                ident = document.get("template_id")
+                if (node_id, ident) in seen:
+                    continue
+                seen.add((node_id, ident))
+                columns.append((node, path, ident, document.get("name", "")))
+    return columns
+
+
+def _row_height(values, widths):
+    lines = 1
+    for (value, _style), width in zip(values, widths):
+        text = str(value or "")
+        per = max(6, int(width * 0.92))
+        lines = max(lines, sum(max(1, -(-len(part) // per)) for part in text.split("\n")))
+    return min(409, max(60, lines * 15 + 20))
+
+
 def export_workbook(group):
-    """Return XLSX bytes containing latest node snapshots and document details."""
+    """Return XLSX bytes with one row per inspection day and one column per node/document."""
     exported = datetime.now(CHINA_TIME)
     export_time = exported.strftime("%Y-%m-%d %H:%M:%S")
     nodes = _ordered_nodes(group)
-    if len(nodes) > 16381:
+    columns = _document_columns(nodes)
+    if len(nodes) > 16380:
         raise ValueError("节点数量超过单张 Excel 工作表支持的列数。")
+    if len(columns) > 16382:
+        raise ValueError("材料数量超过单张 Excel 工作表支持的列数。")
+    days = _dated_records(nodes)
+    dates = sorted(days, reverse=True)
     name = _clean(group.get("name", "未命名项目组"))
     teacher = _clean(group.get("teacher", ""))
-    width = 3 + len(nodes)
-    headers = [("项目组（老师姓名）", 2), ("对接学生", 2), ("导出时间（北京时间）", 2)]
-    template_row = [("项目基本信息", 3), ("", 3), ("", 3)]
-    summary_row = [(name, 0), (teacher, 0), (export_time, 0)]
-    details = []
-    for node, path in nodes:
-        record = _latest_record(node)
-        documents = _documents(node, record)
-        status = record.get("status", "未开始") if record else "未开始"
-        note = _clean(record.get("note", "")) if record else "尚未保存情况记录。"
-        description = _clean(record.get("node_description", node.get("description", ""))) if record else _clean(node.get("description", ""))
-        author = record.get("author", "") if record else ""
-        saved = _date(record.get("created_at")) if record else ""
-        version = record.get("version", "") if record else ""
-        headers.append((" / ".join(path), 2))
-        template_row.append(("\n".join(d.get("name", "") for d in documents) or "未设置文档模板", 3))
-        body = ["节点情况：" + status, "本次情况：" + (note or "未填写")]
-        if record and record.get("node_title") and record["node_title"] != node.get("title"):
-            body.append("记录时节点名称：" + record["node_title"])
-        for document in documents:
-            body.append("\n{}\n完成情况：{}\n修改意见：{}".format(
-                document.get("name", ""), document.get("status", "尚未记录"), document.get("note") or "未填写"))
-        if record:
-            body.append("\n记录时间：{}\n记录人：{}\n版本：{}".format(saved, author, version))
-        summary_row.append(("\n".join(body), _status_style(status)))
-        for document in documents or [{}]:
-            doc_status = document.get("status", "")
-            row = [name, " / ".join(path), node.get("title", ""), status,
-                   document.get("name", "未设置文档模板"), doc_status, document.get("note", ""),
-                   description, note, author, saved, version]
-            if document.get("unrecorded"):
-                row[9:12] = ["", "", ""]
-            details.append(([(value, _status_style(doc_status or status)) for value in row], 90))
-    first_rows = [([(name + " · 节点完成情况    导出时间：" + export_time, 1)], 34), (headers, 75), (template_row, 125),
-                  (summary_row, 300), ([(REMARK, 7)], 35)]
-    detail_headers = ["项目组", "流程路径", "节点", "节点状态", "文档模板", "文档情况", "修改意见",
-                      "节点说明", "本次情况", "记录人", "记录时间（北京时间）", "版本"]
-    detail_rows = [([(value, 2) for value in detail_headers], 32)] + details
+    info = "导出时间：{} · 共 {} 次检查".format(export_time, len(dates))
+    if teacher:
+        info = "对接学生：{} · {}".format(teacher, info)
+
+    node_width = 34
+    node_header = ["检查日期", "记录人"] + [" / ".join(path) for _node, path in nodes]
+    node_rows = [([(name + " · 节点完成情况", 1)], 34), ([(info, 7)], 24)]
+    node_rows.append(([(value, 2) for value in node_header], 70))
+    for day in dates:
+        records = days[day]
+        authors = []
+        for record in records.values():
+            author = _clean(record.get("author", ""))
+            if author and author not in authors:
+                authors.append(author)
+        values = [(day, 0), ("、".join(authors), 0)]
+        for node, _path in nodes:
+            record = records.get(node.get("id"))
+            values.append((_note_text(record), _status_style(record.get("status", "未开始")) if record else 4))
+        node_rows.append((values, _row_height(values, [14, 16] + [node_width] * len(nodes))))
+    if not dates:
+        node_rows.append(([("还没有保存过任何情况记录。", 7)], 24))
+    node_rows.append(([(REMARK, 7)], 34))
+    last = _column(len(node_header))
+    node_merges = ["A1:{}1".format(last), "A2:{}2".format(last),
+                   "A{}:{}".format(len(node_rows), "{}{}".format(last, len(node_rows)))]
+
+    doc_header = ["检查日期"] + [" / ".join(path + [title]) for _node, path, _ident, title in columns]
+    doc_rows = [([(name + " · 文档完成情况", 1)], 34), ([(info, 7)], 24)]
+    doc_rows.append(([(value, 2) for value in doc_header], 70))
+    for day in dates:
+        records = days[day]
+        values = [(day, 0)]
+        for node, _path, ident, _title in columns:
+            record = records.get(node.get("id"))
+            document = None
+            if record:
+                document = next((d for d in record.get("documents", [])
+                                 if isinstance(d, dict) and d.get("template_id") == ident), None)
+            values.append((_note_text(document), _status_style(document.get("status", "")) if document else 4))
+        doc_rows.append((values, _row_height(values, [14] + [node_width] * len(columns))))
+    if not dates:
+        doc_rows.append(([("还没有保存过任何情况记录。", 7)], 24))
+    doc_rows.append(([("看这份表时，先找到检查日期，再看每一列对应的节点或材料。空白表示当天没有检查到这一项。", 7)], 34))
+
+    done_count = 0
+    for node, _path in nodes:
+        for record in node.get("records", []):
+            if isinstance(record, dict) and record.get("status") == "已完成":
+                done_count += 1
     entries = {
         "xl/styles.xml": _styles(),
-        "xl/worksheets/sheet1.xml": _sheet([20, 16, 25] + [38] * len(nodes), first_rows, 3,
-                                          ["A1:{}1".format(_column(width)), "A5:{}5".format(_column(width))]),
-        "xl/worksheets/sheet2.xml": _sheet([20, 38, 28, 15, 42, 15, 48, 48, 48, 18, 24, 10], detail_rows, 1,
-                                          autofilter="A1:L{}".format(max(1, len(detail_rows)))),
+        "xl/worksheets/sheet1.xml": _sheet([14, 16] + [node_width] * len(nodes), node_rows, 3, 3, node_merges),
+        "xl/worksheets/sheet2.xml": _sheet([14] + [node_width] * len(columns), doc_rows, 3, 2),
     }
     return _package(entries, exported)

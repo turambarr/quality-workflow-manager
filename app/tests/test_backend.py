@@ -8,6 +8,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -42,8 +43,20 @@ class RecordsTest(unittest.TestCase):
         data.update(kwargs)
         return self.store.mutate("POST", ["groups", self.gid, "nodes", self.nid, "records"], data)
 
+    def backdate(self, days=1):
+        """把最近一条记录挪到更早的日期，用来模拟另一次检查日。"""
+        record = self.node()["records"][-1]
+        day = (datetime.now().astimezone().date() - timedelta(days=days)).isoformat()
+        snapshot = dict(record, day=day, created_at=day + "T09:00:00+08:00")
+        self.store.db.execute("UPDATE records SET day=?, snapshot=? WHERE id=?",
+                              (day, json.dumps(snapshot, ensure_ascii=False), record["id"]))
+        self.store.db.commit()
+
     def test_revisions_append_and_inherit_complete_snapshot(self):
-        first = copy.deepcopy(self.node(self.save())["records"][0])
+        self.save()
+        self.backdate()
+        first = copy.deepcopy(self.node()["records"][0])
+        self.assertEqual(first["day"], (datetime.now().astimezone().date() - timedelta(days=1)).isoformat())
         state = self.save(1, status="已完成", note="已补充", documents=[{"template_id": "doc-b", "status": "已完成", "note": "日期已填写"}])
         records = self.node(state)["records"]
         self.assertEqual(len(records), 2)
@@ -64,6 +77,7 @@ class RecordsTest(unittest.TestCase):
         self.save()
         self.store.mutate("PUT", ["groups", self.gid, "nodes", self.nid], {
             "title": "采购更新", "description": "新说明", "templates": [{"id": "doc-a", "name": "新版评价单"}]})
+        self.backdate()
         self.save(1, documents=[])
         records = self.node()["records"]
         self.assertEqual(records[0]["node_title"], "第1次采购")
@@ -88,8 +102,9 @@ class RecordsTest(unittest.TestCase):
             self.save(status="任意值")
         self.assertEqual(self.node()["records"], [])
 
-    def test_saved_records_cannot_be_modified_or_removed_in_database(self):
+    def test_past_records_cannot_be_modified_or_removed_in_database(self):
         self.save()
+        self.backdate()
         with self.assertRaises(sqlite3.IntegrityError):
             self.store.db.execute("UPDATE records SET snapshot='{}'")
         self.store.db.rollback()
@@ -98,8 +113,35 @@ class RecordsTest(unittest.TestCase):
         self.store.db.rollback()
         self.assertEqual(len(self.node()["records"]), 1)
 
+    def test_same_day_save_keeps_one_record_and_last_values(self):
+        self.save()
+        state = self.save(1, status="已完成", note="下午又改了一版")
+        records = self.node(state)["records"]
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["version"], 1)
+        self.assertEqual(records[0]["status"], "已完成")
+        self.assertEqual(records[0]["note"], "下午又改了一版")
+
+    def test_save_without_changes_is_rejected(self):
+        self.save()
+        with self.assertRaises(AppError) as raised:
+            self.save(1)
+        self.assertEqual(raised.exception.status, 400)
+        self.assertIn("没有改动", str(raised.exception))
+        self.assertEqual(len(self.node()["records"]), 1)
+
+    def test_next_day_save_adds_a_new_version(self):
+        self.save()
+        self.backdate()
+        state = self.save(1, note="第二天复查")
+        records = self.node(state)["records"]
+        self.assertEqual([r["version"] for r in records], [1, 2])
+        self.assertEqual(records[1]["note"], "第二天复查")
+        self.assertNotEqual(records[0]["day"], records[1]["day"])
+
     def test_archiving_preserves_history_and_removes_edges(self):
         self.save()
+        self.backdate()
         state = self.store.mutate("POST", ["groups", self.gid, "nodes"], {"title": "交付"})
         other = state["groups"][0]["nodes"][1]["id"]
         self.store.mutate("POST", ["groups", self.gid, "edges"], {"source": self.nid, "target": other})
@@ -151,6 +193,7 @@ class RecordsTest(unittest.TestCase):
     def test_backup_restore_and_automatic_previous_backup(self):
         self.save()
         payload = self.store.backup_bytes()
+        self.backdate()
         self.save(1, note="后来的记录")
         self.assertEqual(len(self.node()["records"]), 2)
         self.store.restore_bytes(payload)
@@ -433,6 +476,33 @@ def create_v4_database(folder):
     return path
 
 
+def create_v5_database(folder):
+    path = Path(folder) / "projects.sqlite3"
+    con = sqlite3.connect(path)
+    con.executescript(SCHEMA)
+    con.execute("CREATE TABLE folders (id TEXT PRIMARY KEY, name TEXT NOT NULL, order_index INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)")
+    con.execute("ALTER TABLE groups ADD COLUMN folder_id TEXT")
+    con.execute("ALTER TABLE groups ADD COLUMN archived INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN parent_id TEXT")
+    con.execute("ALTER TABLE nodes ADD COLUMN order_index INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0")
+    con.execute("ALTER TABLE nodes ADD COLUMN planned_date TEXT")
+    con.execute("INSERT INTO metadata VALUES ('schema_version','5')")
+    con.execute("INSERT INTO metadata VALUES ('initialized','1')")
+    con.execute("INSERT INTO folders VALUES ('old-folder','旧文件夹',0,'2026-10-01T09:00:00+08:00')")
+    con.execute("INSERT INTO groups VALUES ('v5-group','五老师','','说明','{}',0,'2026-10-01T09:00:00+08:00','2026-10-02T09:00:00+08:00','old-folder',0)")
+    con.execute("INSERT INTO nodes VALUES ('v5-node','v5-group','节点','说明','',0,0,'[]',0,NULL,0,0,NULL)")
+    for version, day, note in ((1, "2026-10-03", "上午"), (2, "2026-10-03", "下午"), (3, "2026-10-05", "复查")):
+        snapshot = {"id": "v5-record-{}".format(version), "version": version, "created_at": "{}T09:0{}:00+08:00".format(day, version),
+                    "author": "王老师", "status": "进行中", "note": note, "documents": [],
+                    "node_title": "节点", "node_description": "说明"}
+        con.execute("INSERT INTO records VALUES (?,?,?,?)",
+                    (snapshot["id"], "v5-node", version, json.dumps(snapshot, ensure_ascii=False)))
+    con.commit()
+    con.close()
+    return path
+
+
 def create_legacy_database(folder):
     path = Path(folder) / "projects.sqlite3"
     con = sqlite3.connect(path)
@@ -458,12 +528,12 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "5")
+                self.assertEqual(state["storage"]["schema_version"], "6")
                 self.assertEqual(len(state["groups"]), 1)
                 self.assertEqual(state["groups"][0]["name"], "原老师")
                 self.assertEqual(state["groups"][0]["teacher"], "")
                 node = state["groups"][0]["nodes"][0]
-                self.assertEqual(node["records"], [snapshot])
+                self.assertEqual(node["records"], [dict(snapshot, day="2026-11-02")])
                 self.assertEqual((node["parent_id"], node["order_index"], node["favorite"], node["planned_date"]), (None, 0, False, None))
                 self.assertEqual(state["templates"][0]["nodes"][0]["parent_id"], None)
                 backups = list((Path(folder) / "backups").glob("升级前-*.sqlite3"))
@@ -486,7 +556,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "5")
+                self.assertEqual(state["storage"]["schema_version"], "6")
                 self.assertFalse(state["groups"][0]["archived"])
                 self.assertEqual(state["groups"][0]["folder_id"], "old-folder")
                 self.assertEqual(state["folders"][0]["name"], "旧文件夹")
@@ -502,13 +572,34 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "5")
+                self.assertEqual(state["storage"]["schema_version"], "6")
                 group = state["groups"][0]
                 self.assertEqual(group["name"], "四老师")
                 self.assertEqual(group["teacher"], "")
                 self.assertEqual(group["folder_id"], "old-folder")
                 self.assertFalse(group["archived"])
                 self.assertEqual(len(list((Path(folder) / "backups").glob("升级前-*.sqlite3"))), 1)
+            finally:
+                store.close()
+
+    def test_v5_database_collapses_same_day_records(self):
+        with tempfile.TemporaryDirectory() as folder:
+            create_v5_database(folder)
+            store = Store(folder)
+            try:
+                state = store.state()
+                self.assertEqual(state["storage"]["schema_version"], "6")
+                records = state["groups"][0]["nodes"][0]["records"]
+                self.assertEqual([r["note"] for r in records], ["下午", "复查"])
+                self.assertEqual([r["day"] for r in records], ["2026-10-03", "2026-10-05"])
+                self.assertEqual([r["version"] for r in records], [1, 2])
+                self.assertEqual(len(list((Path(folder) / "backups").glob("升级前-*.sqlite3"))), 1)
+                store.mutate("POST", ["groups", state["groups"][0]["id"], "nodes", "v5-node", "records"], {
+                    "expected_version": 2, "author": "王老师", "status": "已完成", "note": "今天补完", "documents": []})
+                records = store.state()["groups"][0]["nodes"][0]["records"]
+                self.assertEqual(len(records), 3)
+                self.assertEqual(records[2]["note"], "今天补完")
+                self.assertEqual(records[2]["version"], 3)
             finally:
                 store.close()
 
@@ -520,8 +611,8 @@ class MigrationTest(unittest.TestCase):
                 store.mutate("POST", ["groups"], {"name": "恢复前项目"})
                 before = copy.deepcopy(store.state()["groups"])
                 state = store.restore_bytes(path.read_bytes())
-                self.assertEqual(state["storage"]["schema_version"], "5")
-                self.assertEqual(state["groups"][0]["nodes"][0]["records"], [snapshot])
+                self.assertEqual(state["storage"]["schema_version"], "6")
+                self.assertEqual(state["groups"][0]["nodes"][0]["records"], [dict(snapshot, day="2026-11-02")])
                 backups = list((Path(target) / "backups").glob("恢复前-*.sqlite3"))
                 self.assertEqual(len(backups), 1)
                 store.restore_bytes(backups[0].read_bytes())
