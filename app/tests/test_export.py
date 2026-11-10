@@ -146,17 +146,22 @@ class ExportTest(unittest.TestCase):
         cells, _ = self.cells()
         self.assertIn("还没有保存过任何情况记录", cells["A5"])
 
-    def test_node_note_sheet_lists_every_node(self):
+    def test_node_note_sheet_is_flat_with_number_name_note_and_templates(self):
         self.group["nodes"][1]["description"] = "采购阶段要核对报价与合同。"
         cells, _ = self.cells(sheet=3)
         self.assertEqual(cells["A1"], "测试项目组 · 节点说明")
-        self.assertEqual(cells["A3"], "节点路径")
-        self.assertEqual(cells["B3"], "节点说明")
-        self.assertEqual(cells["A4"], "研制阶段")
-        self.assertEqual(cells["A5"], "研制阶段 / 输入评审")
-        self.assertEqual(cells["A6"], "研制阶段 / 采购")
-        self.assertEqual(cells["B6"], "采购阶段要核对报价与合同。")
-        self.assertEqual(cells["A7"], "售后")
+        self.assertEqual(cells["A3"], "序号")
+        self.assertEqual(cells["B3"], "节点名称")
+        self.assertEqual(cells["C3"], "节点说明")
+        self.assertEqual(cells["D3"], "对应模板")
+        self.assertEqual(cells["A4"], "1")
+        self.assertEqual(cells["B4"], "输入评审")
+        self.assertEqual(cells["B5"], "采购")
+        self.assertEqual(cells["C5"], "采购阶段要核对报价与合同。")
+        self.assertEqual(cells["D5"], "供方评价单")
+        self.assertEqual(cells["B6"], "售后")
+        self.assertIn("节点说明取自", cells["A7"])
+        self.assertNotIn("研制阶段 / 采购", "".join(cells.values()))
 
     def test_template_row_is_left_blank_when_node_has_no_templates(self):
         cells, _ = self.cells()
@@ -171,7 +176,7 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(workbook.worksheets[0]["A1"].data_type, "s")
         self.assertEqual(workbook.worksheets[0].freeze_panes, "C5")
         self.assertEqual(workbook.worksheets[1].freeze_panes, "B4")
-        self.assertEqual(workbook.worksheets[2].freeze_panes, "B4")
+        self.assertEqual(workbook.worksheets[2].freeze_panes, "C4")
         self.assertTrue(workbook.worksheets[0]["D5"].alignment.wrap_text)
         self.assertEqual(workbook.worksheets[0]["D5"].fill.fgColor.rgb, "FFFAE9D9")
 

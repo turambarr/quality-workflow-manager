@@ -50,7 +50,7 @@ def _number(value, fallback=0):
         return fallback
 
 
-def _ordered_nodes(group, keep_parents=False):
+def _ordered_nodes(group):
     nodes = [n for n in group.get("nodes", []) if isinstance(n, dict)]
     indexed = {n.get("id"): (i, n) for i, n in enumerate(nodes)}
     children = defaultdict(list)
@@ -83,7 +83,7 @@ def _ordered_nodes(group, keep_parents=False):
             visited.add(ident)
             path = parents + [_clean(node.get("title", "未命名节点"))]
             descendants = sorted([n for n in children.get(ident, []) if n.get("id") in active], key=order)
-            if keep_parents or not children.get(ident) or node.get("templates") or node.get("records"):
+            if not children.get(ident) or node.get("templates") or node.get("records"):
                 result.append((node, path))
             stack.extend((child, path) for child in reversed(descendants))
 
@@ -407,10 +407,11 @@ def export_workbook(group):
             if isinstance(record, dict) and record.get("status") == "已完成":
                 done_count += 1
     note_rows = [([(name + " · 节点说明", 1)], 34), ([(info, 7)], 24)]
-    note_rows.append(([("节点路径", 2), ("节点说明", 2)], 30))
-    for node, path in _ordered_nodes(group, keep_parents=True):
-        values = [(" / ".join(path), 0), (_clean(node.get("description", "")), 0)]
-        note_rows.append((values, _row_height(values, [40, 100])))
+    note_rows.append(([("序号", 2), ("节点名称", 2), ("节点说明", 2), ("对应模板", 2)], 30))
+    for number, (node, _path) in enumerate(nodes, 1):
+        values = [(number, 0), (_clean(node.get("title", "")), 0),
+                  (_clean(node.get("description", "")), 0), (_template_text(node), 0)]
+        note_rows.append((values, _row_height(values, [8, 30, 80, 40])))
     if len(note_rows) == 3:
         note_rows.append(([("这个项目组还没有节点。", 7)], 24))
     note_rows.append(([("节点说明取自每个节点的“节点说明”，修改后重新导出即可更新。", 7)], 30))
@@ -418,7 +419,7 @@ def export_workbook(group):
         "xl/styles.xml": _styles(),
         "xl/worksheets/sheet1.xml": _sheet([14, 16] + [node_width] * len(nodes), node_rows, 4, 2, node_merges),
         "xl/worksheets/sheet2.xml": _sheet([14] + [node_width] * len(columns), doc_rows, 3, 1),
-        "xl/worksheets/sheet3.xml": _sheet([40, 100], note_rows, 3, 1, ["A1:B1", "A2:B2",
-                                                                      "A{}:B{}".format(len(note_rows), len(note_rows))]),
+        "xl/worksheets/sheet3.xml": _sheet([8, 30, 80, 40], note_rows, 3, 2, ["A1:D1", "A2:D2",
+                                                                            "A{}:D{}".format(len(note_rows), len(note_rows))]),
     }
     return _package(entries, exported)
