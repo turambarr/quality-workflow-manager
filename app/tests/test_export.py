@@ -57,17 +57,20 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(cells["E3"], "售后")
         self.assertNotIn("F3", cells)
         pane = root.find(".//{{{}}}pane".format(MAIN))
-        self.assertEqual(pane.attrib["topLeftCell"], "C4")
+        self.assertEqual(pane.attrib["topLeftCell"], "C5")
         self.assertEqual(pane.attrib["xSplit"], "2")
         self.assertIn("导出时间", cells["A2"])
 
     def test_one_row_per_inspection_day_with_status_and_note(self):
         cells, _ = self.cells()
-        self.assertEqual(cells["A4"], "2026-11-07")
-        self.assertEqual(cells["B4"], "张老师")
-        self.assertEqual(cells["D4"], "需修改\n请补充日期")
+        self.assertEqual(cells["A4"], "对应模板")
+        self.assertEqual(cells["D4"], "供方评价单")
         self.assertEqual(cells["C4"], "")
-        self.assertEqual(cells["E4"], "")
+        self.assertEqual(cells["A5"], "2026-11-07")
+        self.assertEqual(cells["B5"], "张老师")
+        self.assertEqual(cells["D5"], "需修改\n请补充日期")
+        self.assertEqual(cells["C5"], "")
+        self.assertEqual(cells["E5"], "")
 
     def test_days_are_sorted_latest_first_and_merged_per_node(self):
         target = self.group["nodes"][1]
@@ -76,10 +79,10 @@ class ExportTest(unittest.TestCase):
             record(1, day="2026-11-07"),
         ]
         cells, _ = self.cells()
-        self.assertEqual(cells["A4"], "2026-11-09")
-        self.assertEqual(cells["D4"], "已完成\n已经改好")
-        self.assertEqual(cells["A5"], "2026-11-07")
-        self.assertEqual(cells["D5"], "需修改\n请补充日期")
+        self.assertEqual(cells["A5"], "2026-11-09")
+        self.assertEqual(cells["D5"], "已完成\n已经改好")
+        self.assertEqual(cells["A6"], "2026-11-07")
+        self.assertEqual(cells["D6"], "需修改\n请补充日期")
 
     def test_parent_with_own_work_is_included(self):
         self.group["nodes"][2]["templates"] = [{"id": "parent-doc", "name": "阶段总表"}]
@@ -114,7 +117,7 @@ class ExportTest(unittest.TestCase):
         self.group["nodes"][1]["records"][0]["note"] = "文字<&>\x00\x01\n第二行"
         cells, root = self.cells()
         self.assertEqual(cells["A1"], dangerous + " · 节点完成情况")
-        self.assertIn("文字<&>\n第二行", cells["D4"])
+        self.assertIn("文字<&>\n第二行", cells["D5"])
         self.assertIsNone(root.find(".//{{{}}}f".format(MAIN)))
         self.assertTrue(all(c.attrib["t"] == "inlineStr" for c in root.findall(".//{{{}}}c".format(MAIN))))
 
@@ -122,8 +125,8 @@ class ExportTest(unittest.TestCase):
         target = self.group["nodes"][1]
         target["records"][0]["note"] = "长" * (CELL_LIMIT + 50)
         cells, _ = self.cells()
-        self.assertLessEqual(len(cells["D4"]), CELL_LIMIT)
-        self.assertIn("内容较长", cells["D4"])
+        self.assertLessEqual(len(cells["D5"]), CELL_LIMIT)
+        self.assertIn("内容较长", cells["D5"])
 
     def test_export_does_not_mutate_input(self):
         before = copy.deepcopy(self.group)
@@ -135,25 +138,42 @@ class ExportTest(unittest.TestCase):
         cells, _ = self.cells()
         self.assertEqual(cells["A1"], "测试项目组 · 节点完成情况")
         self.assertNotIn("C3", cells)
-        self.assertIn("还没有保存过任何情况记录", cells["A4"])
+        self.assertIn("还没有保存过任何情况记录", cells["A5"])
 
     def test_group_without_records_shows_header_only(self):
         for item in self.group["nodes"]:
             item["records"] = []
         cells, _ = self.cells()
-        self.assertIn("还没有保存过任何情况记录", cells["A4"])
+        self.assertIn("还没有保存过任何情况记录", cells["A5"])
+
+    def test_node_note_sheet_lists_every_node(self):
+        self.group["nodes"][1]["description"] = "采购阶段要核对报价与合同。"
+        cells, _ = self.cells(sheet=3)
+        self.assertEqual(cells["A1"], "测试项目组 · 节点说明")
+        self.assertEqual(cells["A3"], "节点路径")
+        self.assertEqual(cells["B3"], "节点说明")
+        self.assertEqual(cells["A4"], "研制阶段")
+        self.assertEqual(cells["A5"], "研制阶段 / 输入评审")
+        self.assertEqual(cells["A6"], "研制阶段 / 采购")
+        self.assertEqual(cells["B6"], "采购阶段要核对报价与合同。")
+        self.assertEqual(cells["A7"], "售后")
+
+    def test_template_row_is_left_blank_when_node_has_no_templates(self):
+        cells, _ = self.cells()
+        self.assertEqual(cells["E4"], "")
 
     @unittest.skipUnless(load_workbook, "openpyxl available only in the validation environment")
     def test_openpyxl_reads_styles_text_and_freeze_panes(self):
         self.group["name"] = "=1+1"
         workbook = load_workbook(BytesIO(export_workbook(self.group)))
-        self.assertEqual(workbook.sheetnames, ["节点完成情况", "文档完成情况"])
+        self.assertEqual(workbook.sheetnames, ["节点完成情况", "文档完成情况", "节点说明"])
         self.assertEqual(workbook.worksheets[0]["A1"].value, "=1+1 · 节点完成情况")
         self.assertEqual(workbook.worksheets[0]["A1"].data_type, "s")
-        self.assertEqual(workbook.worksheets[0].freeze_panes, "C4")
+        self.assertEqual(workbook.worksheets[0].freeze_panes, "C5")
         self.assertEqual(workbook.worksheets[1].freeze_panes, "B4")
-        self.assertTrue(workbook.worksheets[0]["D4"].alignment.wrap_text)
-        self.assertEqual(workbook.worksheets[0]["D4"].fill.fgColor.rgb, "FFFAE9D9")
+        self.assertEqual(workbook.worksheets[2].freeze_panes, "B4")
+        self.assertTrue(workbook.worksheets[0]["D5"].alignment.wrap_text)
+        self.assertEqual(workbook.worksheets[0]["D5"].fill.fgColor.rgb, "FFFAE9D9")
 
 
 if __name__ == "__main__":

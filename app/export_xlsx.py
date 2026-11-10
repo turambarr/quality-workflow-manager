@@ -50,7 +50,7 @@ def _number(value, fallback=0):
         return fallback
 
 
-def _ordered_nodes(group):
+def _ordered_nodes(group, keep_parents=False):
     nodes = [n for n in group.get("nodes", []) if isinstance(n, dict)]
     indexed = {n.get("id"): (i, n) for i, n in enumerate(nodes)}
     children = defaultdict(list)
@@ -83,7 +83,7 @@ def _ordered_nodes(group):
             visited.add(ident)
             path = parents + [_clean(node.get("title", "未命名节点"))]
             descendants = sorted([n for n in children.get(ident, []) if n.get("id") in active], key=order)
-            if not children.get(ident) or node.get("templates") or node.get("records"):
+            if keep_parents or not children.get(ident) or node.get("templates") or node.get("records"):
                 result.append((node, path))
             stack.extend((child, path) for child in reversed(descendants))
 
@@ -229,7 +229,7 @@ def _package(entries, exported):
         "/docProps/core.xml": "application/vnd.openxmlformats-package.core-properties+xml",
         "/docProps/app.xml": "application/vnd.openxmlformats-officedocument.extended-properties+xml",
     }
-    for i in (1, 2):
+    for i in (1, 2, 3):
         types["/xl/worksheets/sheet{}.xml".format(i)] = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"
     for part, kind in types.items():
         ET.SubElement(content, "{{{}}}Override".format(CONTENT), PartName=part, ContentType=kind)
@@ -243,11 +243,11 @@ def _package(entries, exported):
     workbook = ET.Element(_tag("workbook"))
     sheets = ET.SubElement(workbook, _tag("sheets"))
     workbook_relationships = ET.Element("{{{}}}Relationships".format(PACKAGE_REL))
-    for i, name in enumerate(("节点完成情况", "文档完成情况"), 1):
+    for i, name in enumerate(("节点完成情况", "文档完成情况", "节点说明"), 1):
         ET.SubElement(sheets, _tag("sheet"), {"name": name, "sheetId": str(i), "{{{}}}id".format(REL): "rId{}".format(i)})
         ET.SubElement(workbook_relationships, "{{{}}}Relationship".format(PACKAGE_REL),
                       Id="rId{}".format(i), Target="worksheets/sheet{}.xml".format(i), Type=REL + "/worksheet")
-    ET.SubElement(workbook_relationships, "{{{}}}Relationship".format(PACKAGE_REL), Id="rId3", Target="styles.xml", Type=REL + "/styles")
+    ET.SubElement(workbook_relationships, "{{{}}}Relationship".format(PACKAGE_REL), Id="rId4", Target="styles.xml", Type=REL + "/styles")
     entries["xl/workbook.xml"] = _xml(workbook)
     entries["xl/_rels/workbook.xml.rels"] = _xml(workbook_relationships)
     cp = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
@@ -302,6 +302,15 @@ def _note_text(record):
     return status + ("\n" + note if note else "")
 
 
+def _template_text(node):
+    names = []
+    for template in node.get("templates", []):
+        name = _clean(template.get("name", ""))
+        if name and name not in names:
+            names.append(name)
+    return "、".join(names)
+
+
 def _document_columns(nodes):
     columns, seen = [], set()
     for node, path in nodes:
@@ -353,6 +362,8 @@ def export_workbook(group):
     node_header = ["检查日期", "记录人"] + [" / ".join(path) for _node, path in nodes]
     node_rows = [([(name + " · 节点完成情况", 1)], 34), ([(info, 7)], 24)]
     node_rows.append(([(value, 2) for value in node_header], 70))
+    template_values = [("对应模板", 7), ("", 7)] + [(_template_text(node), 7) for node, _path in nodes]
+    node_rows.append((template_values, _row_height(template_values, [14, 16] + [node_width] * len(nodes))))
     for day in dates:
         records = days[day]
         authors = []
@@ -395,9 +406,19 @@ def export_workbook(group):
         for record in node.get("records", []):
             if isinstance(record, dict) and record.get("status") == "已完成":
                 done_count += 1
+    note_rows = [([(name + " · 节点说明", 1)], 34), ([(info, 7)], 24)]
+    note_rows.append(([("节点路径", 2), ("节点说明", 2)], 30))
+    for node, path in _ordered_nodes(group, keep_parents=True):
+        values = [(" / ".join(path), 0), (_clean(node.get("description", "")), 0)]
+        note_rows.append((values, _row_height(values, [40, 100])))
+    if len(note_rows) == 3:
+        note_rows.append(([("这个项目组还没有节点。", 7)], 24))
+    note_rows.append(([("节点说明取自每个节点的“节点说明”，修改后重新导出即可更新。", 7)], 30))
     entries = {
         "xl/styles.xml": _styles(),
-        "xl/worksheets/sheet1.xml": _sheet([14, 16] + [node_width] * len(nodes), node_rows, 3, 2, node_merges),
+        "xl/worksheets/sheet1.xml": _sheet([14, 16] + [node_width] * len(nodes), node_rows, 4, 2, node_merges),
         "xl/worksheets/sheet2.xml": _sheet([14] + [node_width] * len(columns), doc_rows, 3, 1),
+        "xl/worksheets/sheet3.xml": _sheet([40, 100], note_rows, 3, 1, ["A1:B1", "A2:B2",
+                                                                      "A{}:B{}".format(len(note_rows), len(note_rows))]),
     }
     return _package(entries, exported)
