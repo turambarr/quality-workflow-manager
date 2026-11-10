@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 if ($env:OS -ne "Windows_NT") {
     throw "请在 Windows 电脑上运行此打包脚本。"
 }
@@ -6,8 +6,18 @@ if ($env:OS -ne "Windows_NT") {
 Push-Location $PSScriptRoot
 try {
     if (-not (Test-Path ".venv\Scripts\python.exe")) {
-        py -3 -m venv .venv
-        if ($LASTEXITCODE -ne 0) { throw "无法创建 Python 开发环境。" }
+        $created = $false
+        foreach ($exe in @("py", "python")) {
+            if (-not (Get-Command $exe -ErrorAction SilentlyContinue)) { continue }
+            $pyargs = if ($exe -eq "py") { @("-3") } else { @() }
+            & $exe @pyargs -m venv .venv
+            if ($LASTEXITCODE -eq 0) { $created = $true; break }
+            Write-Host "用 $exe 创建环境失败，换另一个 Python 试试。"
+            if (Test-Path ".venv") { Remove-Item -Recurse -Force ".venv" }
+        }
+        if (-not $created) {
+            throw "没有找到可用的 Python。请安装 Python 3.9 以上版本（勾选 Add python.exe to PATH），或在 Anaconda Prompt 里运行本脚本。"
+        }
     }
     & ".venv\Scripts\python.exe" -m pip install -r requirements-desktop.txt
     if ($LASTEXITCODE -ne 0) { throw "安装打包组件失败。" }
