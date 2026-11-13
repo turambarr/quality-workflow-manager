@@ -23,10 +23,76 @@ function renderWorkspace(){
   if(ui.mode==='work'&&!selectedNode())ui.nodeId=orderedNodes(f)[0]?.id||null;
   const workCount=orderedNodes(f).filter(n=>!childrenOf(f,n.id).length||n.templates?.length||n.records?.length).length;
   return `<div class="workspace-titlebar"><div class="workspace-name"><h1>${esc(f.name)}</h1>${f.is_demo?'<span class="tag">示例</span>':''}<span class="workspace-meta">${isTemplate()?'分级模板':`${workCount} 项工作`}</span></div><div class="button-row">${isTemplate()?button('edit-template-meta','模板信息','settings','small-btn quiet'):button('edit-group','项目资料','info','small-btn quiet')}${!isTemplate()?button('export-progress','导出完成情况','download','small-btn'):''}${button('workspace-more','更多','settings','small-btn quiet')}</div></div>
-  <div class="modebar"><div class="mode-tabs" role="tablist" aria-label="工作方式"><button class="mode-tab ${ui.mode==='work'?'active':''}" data-action="mode-work" role="tab" aria-selected="${ui.mode==='work'}">${icon('file')}逐项检查</button><button class="mode-tab ${ui.mode==='graph'?'active':''}" data-action="mode-graph" role="tab" aria-selected="${ui.mode==='graph'}">${icon('flow')}流程总览</button></div><div class="button-row">${button('new-node','添加节点','plus','quiet small-btn')}</div></div>
-  ${ui.mode==='graph'?renderGraphView(f):renderWorkbench(f)}`;
+  <div class="modebar"><div class="mode-tabs" role="tablist" aria-label="工作方式"><button class="mode-tab ${ui.mode==='work'?'active':''}" data-action="mode-work" role="tab" aria-selected="${ui.mode==='work'}">${icon('file')}逐项检查</button><button class="mode-tab ${ui.mode==='graph'?'active':''}" data-action="mode-graph" role="tab" aria-selected="${ui.mode==='graph'}">${icon('flow')}流程总览</button>${isTemplate()?'':`<button class="mode-tab ${ui.mode==='stats'?'active':''}" data-action="mode-stats" role="tab" aria-selected="${ui.mode==='stats'}">${icon('chart')}完成度统计</button>`}</div><div class="button-row">${button('new-node','添加节点','plus','quiet small-btn')}</div></div>
+  ${ui.mode==='stats'?renderStatsView(f):ui.mode==='graph'?renderGraphView(f):renderWorkbench(f)}`;
 }
 function renderWorkbench(f){const n=selectedNode();return `<div class="workbench"><aside class="process-directory" aria-label="过程目录"><div class="directory-header"><span>过程目录</span><span>${orderedNodes(f).length}</span></div><label class="search directory-search">${icon('search')}<input id="node-search" type="search" placeholder="搜索过程或模板名称" aria-label="搜索过程或模板名称" value="${esc(ui.nodeSearch)}"></label><div class="directory-items" id="directory-items">${renderDirectory(f)}</div></aside><section class="process-page" aria-label="节点办理页面">${n?renderProcessPage(f,n):`<div class="empty">${icon('flow')}<h3>添加第一个流程节点</h3><p>点击“添加节点”，建立项目组自己的流程。</p>${button('new-node','添加节点','plus','primary')}</div>`}</section></div>`;}
+const DOC_STATUSES=['已完成','待检查','需修改','进行中','未开始'];
+function documentStats(f){
+  const counts={};DOC_STATUSES.forEach(status=>counts[status]=0);
+  let total=0,excluded=0,nodeCount=0;
+  activeNodes(f).forEach(n=>{
+    const docs=n.templates||[];
+    if(!docs.length)return;
+    nodeCount+=1;
+    const saved=latest(n)?.documents||[];
+    docs.forEach(t=>{
+      const status=saved.find(d=>d.template_id===t.id)?.status||'未开始';
+      if(status==='不涉及'){excluded+=1;return;}
+      counts[status]=(counts[status]||0)+1;total+=1;
+    });
+  });
+  return {counts,total,excluded,nodeCount};
+}
+function sectionStats(f){
+  const rows=[];
+  activeNodes(f).forEach(sec=>{
+    if(sec.parent_id||!childrenOf(f,sec.id).length)return;
+    const nodes=activeNodes(f).filter(n=>n.id===sec.id||isDescendant(f,n.id,sec.id));
+    let done=0,total=0;
+    nodes.forEach(n=>{
+      const saved=latest(n)?.documents||[];
+      (n.templates||[]).forEach(t=>{
+        const status=saved.find(d=>d.template_id===t.id)?.status||'未开始';
+        if(status==='不涉及')return;
+        total+=1; if(status==='已完成')done+=1;
+      });
+    });
+    if(total)rows.push({name:sec.title,done,total});
+  });
+  return rows;
+}
+function renderStatsView(f){
+  const {counts,total,excluded,nodeCount}=documentStats(f);
+  const percent=total?Math.round(counts['已完成']/total*100):0;
+  if(!total)return `<div class="stats-view"><div class="empty">${icon('chart')}<h3>还没有可以统计的材料</h3><p>先给过程配置文档模板，再记录完成情况，这里会显示材料完成度。</p></div></div>`;
+  let offset=0;
+  const segments=DOC_STATUSES.filter(status=>counts[status]).map(status=>{
+    const value=counts[status]/total*100;
+    const circle=`<circle class="donut-seg donut-${status}" cx="21" cy="21" r="15.9155" fill="none" stroke-width="5.4" stroke-dasharray="${value.toFixed(3)} ${(100-value).toFixed(3)}" stroke-dashoffset="${(-offset).toFixed(3)}"/>`;
+    offset+=value;
+    return circle;
+  }).join('');
+  const legend=DOC_STATUSES.map(status=>`<div class="stats-row"><span class="stats-dot donut-${status}"></span><span class="stats-label">${status}</span><span class="stats-count">${counts[status]}</span><span class="stats-percent">${total?(counts[status]/total*100).toFixed(0):0}%</span></div>`).join('');
+  return `<div class="stats-view">
+    <div class="stats-card">
+      <div class="stats-chart">
+        <svg viewBox="0 0 42 42" role="img" aria-label="材料完成情况饼图">
+          <circle class="donut-track" cx="21" cy="21" r="15.9155" fill="none" stroke-width="5.4"/>
+          <g transform="rotate(-90 21 21)">${segments}</g>
+          <text class="donut-value" x="21" y="20.4">${percent}%</text>
+          <text class="donut-caption" x="21" y="26">已完成</text>
+        </svg>
+      </div>
+      <div class="stats-legend">
+        <div class="stats-heading"><h3>材料完成情况</h3><p>共 ${total} 份材料，分布在 ${nodeCount} 个过程；${excluded?`${excluded} 份“不涉及”未计入分母。`:'统计的是各份材料的最新状态。'}</p></div>
+        <div class="stats-rows">${legend}</div>
+        <div class="stats-foot">已完成 ${counts['已完成']} 份 · 待检查 ${counts['待检查']} 份 · 需修改 ${counts['需修改']} 份</div>
+      </div>
+    </div>
+    ${(()=>{const rows=sectionStats(f);if(!rows.length)return '';return `<div class="stats-card stats-stages"><div class="stats-heading"><h3>各阶段完成度</h3><p>按阶段汇总材料完成情况；“不涉及”不计入。</p></div><div class="stage-rows">${rows.map(r=>{const pct=Math.round(r.done/r.total*100);return `<div class="stage-row"><span class="stage-name">${esc(r.name)}</span><span class="stage-bar"><i style="width:${pct}%"></i></span><span class="stage-value">${r.done} / ${r.total}</span><span class="stage-pct">${pct}%</span></div>`;}).join('')}</div></div>`;})()}
+  </div>`;
+}
 function docStatus(n,t){return latest(n)?.documents?.find(d=>d.template_id===t.id)?.status||'未开始';}
 function renderDirectory(f){
   const q=(ui.nodeSearch||'').trim().toLowerCase();
@@ -72,6 +138,7 @@ document.addEventListener('click',async event=>{const target=event.target.closes
   if(action==='open-favorite'){if(!mayLeave())return;ui.groupId=target.dataset.group;ui.templateId=null;ui.view='group';ui.nodeId=target.dataset.id;ui.mode='work';ui.tab='overview';ui.dirty=false;render();return;}
   if(action==='mode-work'){if(!mayLeave())return;ui.mode='work';ui.tab='overview';ui.nodeId=ui.nodeId||orderedNodes(flow())[0]?.id;render();return;}
   if(action==='mode-graph'){if(!mayLeave())return;ui.mode='graph';render();return;}
+  if(action==='mode-stats'){if(!mayLeave())return;ui.mode='stats';render();return;}
   if(action==='toggle-favorite'){const id=ui.nodeId;await updateNode(id,{favorite:!selectedNode().favorite});const n=selectedNode();target.classList.toggle('is-starred',n.favorite);target.setAttribute('aria-pressed',String(n.favorite));target.setAttribute('aria-label',n.favorite?'取消收藏':'收藏此过程');target.title=n.favorite?'取消收藏':'收藏此过程';toast(n.favorite?'已加入收藏夹':'已取消收藏');return;}
   if(action==='previous-node'||action==='next-node'){const ns=orderedNodes(flow()),i=ns.findIndex(n=>n.id===ui.nodeId),n=ns[i+(action==='next-node'?1:-1)];if(n)openWorkNode(n.id);return;}
   if(action==='save-and-go'){const form=$('#record-form'),destination=pendingNode;forceCloseModal();if(!form||!form.reportValidity())return;pendingNode=destination;form.requestSubmit();return;}

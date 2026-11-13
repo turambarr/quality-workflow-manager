@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 STATUSES = ("未开始", "进行中", "待检查", "需修改", "已完成", "不涉及")
-SCHEMA_VERSION = "7"
+SCHEMA_VERSION = "8"
 MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
 
@@ -173,10 +173,10 @@ class Store:
             self._drop_legacy_triggers(self.db)
         existing = self.db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         previous = existing[0] if existing else None
-        if existing and existing[0] not in ("1", "2", "3", "4", "5", "6", SCHEMA_VERSION):
+        if existing and existing[0] not in ("1", "2", "3", "4", "5", "6", "7", SCHEMA_VERSION):
             self.db.close()
             raise AppError("数据库版本与当前程序不兼容。", 409)
-        if existing and existing[0] in ("1", "2", "3", "4", "5", "6"):
+        if existing and existing[0] in ("1", "2", "3", "4", "5", "6", "7"):
             self._save_automatic_backup("升级前")
         self._migrate_database(self.db)
         preset_file = Path(presets_path) if presets_path else Path(__file__).resolve().parent / "presets.json"
@@ -213,7 +213,7 @@ class Store:
     def _migrate_database(db):
         version_row = db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         version = version_row[0] if version_row else "1"
-        if version not in ("1", "2", "3", "4", "5", "6", SCHEMA_VERSION):
+        if version not in ("1", "2", "3", "4", "5", "6", "7", SCHEMA_VERSION):
             raise AppError("数据库版本与当前程序不兼容。", 409)
         if version == SCHEMA_VERSION:
             return
@@ -296,7 +296,7 @@ class Store:
         target.write_bytes(self.backup_bytes())
         return target
 
-    RENAMED_TEMPLATES = {"重要级 · 项目组": "项目组管理 · 重要级", "重要级 · 学院": "学院管理 · 重要级"}
+    RENAMED_TEMPLATES = {"重要级 · 项目组": "项目组管理 · 重要级"}
 
     def _ensure_builtin_folders(self, preset):
         for index, folder in enumerate(preset.get("folders", [])):
@@ -307,18 +307,26 @@ class Store:
                             (folder.get("id") or new_id(), name, index, now()))
 
     def _ensure_builtin_templates(self, preset):
+        desired = {}
         for entry in preset.get("templates", []):
-            name = text(entry["name"], "分级模板名称", True, 200)
-            found = self.db.execute("SELECT id FROM templates WHERE name=?", (name,)).fetchone()
-            if not found:
-                old_name = self.RENAMED_TEMPLATES.get(name)
-                renamed = self.db.execute("SELECT id FROM templates WHERE name=?", (old_name,)).fetchone() if old_name else None
-                if renamed:
-                    self.db.execute("UPDATE templates SET name=? WHERE id=?", (name, renamed[0]))
-                    found = renamed
-            if found:
+            desired[text(entry["name"], "分级模板名称", True, 200)] = entry
+        for new_name, old_name in self.RENAMED_TEMPLATES.items():
+            if new_name not in desired:
                 continue
+            row = self.db.execute("SELECT id FROM templates WHERE name=? AND is_preset=1", (old_name,)).fetchone()
+            if row and not self.db.execute("SELECT 1 FROM templates WHERE name=?", (new_name,)).fetchone():
+                self.db.execute("UPDATE templates SET name=? WHERE id=?", (new_name, row[0]))
+        for row in self.db.execute("SELECT id,name FROM templates WHERE is_preset=1").fetchall():
+            if row[1] not in desired:
+                self.db.execute("DELETE FROM templates WHERE id=?", (row[0],))
+        for name, entry in desired.items():
             nodes, edges = self._validate_flow(entry.get("nodes", []), entry.get("edges", []))
+            found = self.db.execute("SELECT id,is_preset FROM templates WHERE name=?", (name,)).fetchone()
+            if found:
+                if found[1]:
+                    self.db.execute("UPDATE templates SET description=?, nodes=?, edges=? WHERE id=?",
+                                    (text(entry.get("description", ""), "分级模板说明"), encode(nodes), encode(edges), found[0]))
+                continue
             self.db.execute("INSERT INTO templates VALUES (?,?,?,?,?,1)",
                             (entry.get("id") or new_id(), name,
                              text(entry.get("description", ""), "分级模板说明"), encode(nodes), encode(edges)))
@@ -856,7 +864,7 @@ class Store:
                 if candidate.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise AppError("备份文件不完整，无法恢复。")
                 version_row = candidate.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", "6", SCHEMA_VERSION):
+                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", "6", "7", SCHEMA_VERSION):
                     raise AppError("这个备份的版本与当前程序不兼容。")
                 candidate.execute("PRAGMA query_only=OFF")
                 self._drop_legacy_triggers(candidate)

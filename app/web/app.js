@@ -21,6 +21,7 @@ const icons = {
   close:'<path d="m6 6 12 12M18 6 6 18"/>',
   edit:'<path d="m14 4 6 6M4 20l5-1L21 7a2 2 0 0 0-4-4L5 15l-1 5Z"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chart:'<path d="M12 3a9 9 0 1 0 9 9h-9Z"/><path d="M14.5 2.3A9 9 0 0 1 21.7 9.5H14.5Z"/>',
   save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/>',
   download:'<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
   upload:'<path d="M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5"/>',
