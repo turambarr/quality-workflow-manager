@@ -167,9 +167,9 @@ document.addEventListener('click',async event=>{const target=event.target.closes
   if(action==='favorites')return navigate('favorites');
   if(action==='open-favorite'){if(!mayLeave())return;ui.groupId=target.dataset.group;ui.templateId=null;ui.view='group';ui.nodeId=target.dataset.id;ui.mode='work';ui.tab='overview';ui.dirty=false;render();return;}
   if(action==='mode-work'){if(!mayLeave())return;ui.mode='work';ui.tab='overview';ui.nodeId=ui.nodeId||orderedNodes(flow())[0]?.id;render();return;}
-  if(action==='mode-graph'){if(!mayLeave())return;ui.mode='graph';render();return;}
+  if(action==='mode-graph'){if(!mayLeave())return;if($('.modal'))forceCloseModal();ui.mode='graph';render();return;}
   if(action==='mode-stats'){if(!mayLeave())return;ui.mode='stats';render();return;}
-  if(action==='mode-overview'){if(!mayLeave())return;ui.mode='overview';render();return;}
+  if(action==='mode-overview'){if(!mayLeave())return;if($('.modal'))forceCloseModal();ui.mode='overview';render();return;}
   if(action==='overview-node'){openWorkNode(target.dataset.id);return;}
   if(action==='filter-status'){ui.statusFilter=target.dataset.status||'';render();return;}
   if(action==='toggle-favorite'){const id=ui.nodeId;await updateNode(id,{favorite:!selectedNode().favorite});const n=selectedNode();target.classList.toggle('is-starred',n.favorite);target.setAttribute('aria-pressed',String(n.favorite));target.setAttribute('aria-label',n.favorite?'取消收藏':'收藏此过程');target.title=n.favorite?'取消收藏':'收藏此过程';toast(n.favorite?'已加入收藏夹':'已取消收藏');return;}

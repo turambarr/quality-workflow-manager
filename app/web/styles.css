@@ -316,3 +316,5 @@ textarea.input.notify-text{margin-top:2px;min-height:300px;max-height:52vh;resiz
 .ov-tile .ov-index{width:auto;margin-right:2px}
 .ov-tile{padding:10px 12px}
 .project-main>.topbar,.project-main>.modebar,.project-main>.workspace-titlebar{flex:0 0 auto}
+.directory-filter{display:block}
+.filter-select{width:100%;box-sizing:border-box}
