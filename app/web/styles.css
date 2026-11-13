@@ -171,3 +171,36 @@ textarea.input.notify-text{margin-top:2px;min-height:300px;max-height:52vh;resiz
 .process-description p{margin:0;font-size:12.5px;line-height:1.7;color:#6b6559;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media(max-width:600px){.process-description{margin-top:9px;padding:7px 10px}.process-description p{-webkit-line-clamp:3;font-size:12px}}
 .process-heading .button-row{flex:0 0 auto;flex-wrap:nowrap}
+/* 顶栏：品牌与常驻信息栏 */
+.brand-text{min-width:0}
+.brand .brand-name{font-family:var(--serif);font-size:15px;font-weight:600;line-height:1.34;letter-spacing:.2px;white-space:normal;word-break:break-word}
+.brand .brand-sub{margin-top:2px;letter-spacing:1.6px}
+.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:18px}
+.topbar .breadcrumbs{min-width:0;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+.topbar .breadcrumbs button{font:inherit;font-size:12px;color:#8d8373;background:none;border:0;padding:0;cursor:pointer;white-space:nowrap}
+.topbar .breadcrumbs button:hover{color:var(--accent)}
+.topbar .breadcrumbs .current{font-size:13px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar .breadcrumbs .tag{margin-left:2px}
+.topbar-notice{color:#b03a2c;font-size:12px;font-weight:500;letter-spacing:.4px;text-align:center;white-space:nowrap}
+.topbar-right{justify-self:end;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.topbar-actions{display:flex;align-items:center;gap:6px}
+.topbar-actions .btn{font-size:12px;padding:6px 10px}
+.project-main>.topbar{display:grid}
+.workspace-titlebar{display:none}
+@media(max-width:1180px){.topbar-notice{font-size:11px;letter-spacing:0}}
+@media(max-width:980px){
+  .topbar{grid-template-columns:minmax(0,1fr) auto;row-gap:4px;height:auto;min-height:0;padding-block:8px}
+  .topbar-notice{grid-column:1/-1;order:3;font-size:10.5px;white-space:normal;text-align:left;letter-spacing:0}
+  .topbar-actions{display:none}
+  .workspace-titlebar{display:flex}
+}
+@media(max-width:600px){
+  .topbar .breadcrumbs{justify-content:flex-start}
+  .topbar .breadcrumbs .crumb-root,.topbar .breadcrumbs .crumb-folder,.topbar .breadcrumbs .icon{display:none}
+  .topbar .breadcrumbs .current{font-size:12.5px}
+  .topbar .breadcrumbs .tag{flex:none}
+}
+@media(max-width:600px){
+  .workspace-titlebar{justify-content:flex-end}
+  .workspace-titlebar .workspace-name{display:none}
+}

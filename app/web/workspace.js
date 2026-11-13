@@ -22,7 +22,7 @@ function renderWorkspace(){
   const f=flow();if(!f)return '<div class="empty"><h3>未找到该流程</h3></div>';
   if(ui.mode==='work'&&!selectedNode())ui.nodeId=orderedNodes(f)[0]?.id||null;
   const workCount=orderedNodes(f).filter(n=>!childrenOf(f,n.id).length||n.templates?.length||n.records?.length).length;
-  return `<div class="workspace-titlebar"><div class="workspace-name"><h1>${esc(f.name)}</h1>${f.is_demo?'<span class="tag">示例</span>':''}<span class="workspace-meta">${isTemplate()?'流程模板':`${workCount} 项工作`}</span></div><div class="button-row">${isTemplate()?button('edit-template-meta','模板信息','settings','small-btn quiet'):button('edit-group','项目资料','info','small-btn quiet')}${!isTemplate()?button('export-progress','导出完成情况','download','small-btn'):''}${button('workspace-more','更多','settings','small-btn quiet')}</div></div>
+  return `<div class="workspace-titlebar"><div class="workspace-name"><h1>${esc(f.name)}</h1>${f.is_demo?'<span class="tag">示例</span>':''}<span class="workspace-meta">${isTemplate()?'分级模板':`${workCount} 项工作`}</span></div><div class="button-row">${isTemplate()?button('edit-template-meta','模板信息','settings','small-btn quiet'):button('edit-group','项目资料','info','small-btn quiet')}${!isTemplate()?button('export-progress','导出完成情况','download','small-btn'):''}${button('workspace-more','更多','settings','small-btn quiet')}</div></div>
   <div class="modebar"><div class="mode-tabs" role="tablist" aria-label="工作方式"><button class="mode-tab ${ui.mode==='work'?'active':''}" data-action="mode-work" role="tab" aria-selected="${ui.mode==='work'}">${icon('file')}逐项检查</button><button class="mode-tab ${ui.mode==='graph'?'active':''}" data-action="mode-graph" role="tab" aria-selected="${ui.mode==='graph'}">${icon('flow')}流程总览</button></div><div class="button-row">${button('new-node','添加节点','plus','quiet small-btn')}</div></div>
   ${ui.mode==='graph'?renderGraphView(f):renderWorkbench(f)}`;
 }
@@ -89,7 +89,7 @@ document.addEventListener('click',async event=>{const target=event.target.closes
   if(action==='save-order'){await saveOrder();forceCloseModal();render();toast('顺序和相邻连接已保存');return;}
   if(action==='group-nodes'){if(!mayLeave())return;return groupNodesModal();}
   if(action==='export-progress')return await downloadProgress();
-  if(action==='workspace-more'){if(!mayLeave())return;showModal('流程操作',`<div class="modal-body workspace-menu">${!isTemplate()?button('save-as-template','保存为流程模板','copy'):button('edit-template-meta','编辑模板信息','settings')}${button('archives','查看已归档节点','archive')}${button('new-node','添加流程节点','plus')}${button('order-nodes','调整当前层级顺序','settings')}</div>`,button('close-modal','关闭',null));return;}
+  if(action==='workspace-more'){if(!mayLeave())return;showModal('流程操作',`<div class="modal-body workspace-menu">${!isTemplate()?button('save-as-template','保存为分级模板','copy'):button('edit-template-meta','编辑模板信息','settings')}${button('archives','查看已归档节点','archive')}${button('new-node','添加流程节点','plus')}${button('order-nodes','调整当前层级顺序','settings')}</div>`,button('close-modal','关闭',null));return;}
 }catch(error){const el=$('#order-error');if(el)el.textContent=error.message;else toast(error.message);}});
 document.addEventListener('input',event=>{if(event.target.id==='node-search'){ui.nodeSearch=event.target.value;$('#directory-items').innerHTML=renderDirectory(flow());}});
 document.addEventListener('submit',async event=>{const form=event.target;if(form.id!=='group-nodes-form')return;event.preventDefault();const submit=document.querySelector(`[form="${form.id}"]`);if(submit)submit.disabled=true;try{

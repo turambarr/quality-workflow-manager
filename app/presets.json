@@ -2,8 +2,8 @@
   "templates": [
     {
       "id": "preset-project-important",
-      "name": "项目组管理 · 重要级",
-      "description": "包含参考清单中的32项项目组管理事项。节点说明可自行填写，连接关系可按实际工作设置。",
+      "name": "重要级 · 项目组",
+      "description": "包含参考清单中的 32 项项目组管理事项，按 7 个阶段分组。",
       "nodes": [
         {
           "id": "section-preset-project-important-1",
@@ -912,8 +912,8 @@
     },
     {
       "id": "preset-college-important",
-      "name": "学院管理 · 重要级",
-      "description": "包含参考清单中的18项学院管理事项。文档模板名称及节点说明可自行补充。",
+      "name": "重要级 · 学院",
+      "description": "包含学院层面的 18 项管理事项。",
       "nodes": [
         {
           "id": "p-college-1",
@@ -1255,14 +1255,1546 @@
           "target": "p-college-18"
         }
       ]
+    },
+    {
+      "id": "preset-project-general",
+      "name": "一般级 · 项目组",
+      "description": "包含参考清单中的 12 项一般级项目组管理事项。",
+      "nodes": [
+        {
+          "id": "preset-project-general-n1",
+          "title": "项目组文件清单",
+          "description": "建议时间：实时更新",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "7.5-1《文件清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n2",
+          "title": "合同评审（日期在合同签署之前）",
+          "description": "建议时间：项目合同签署前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.2-1《产品和服务要求评审（合同评审）》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n3",
+          "title": "《质量保证大纲》",
+          "description": "建议时间：项目刚立项时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.1-1《质量保证大纲》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n4",
+          "title": "《设计开发计划书》",
+          "description": "建议时间：项目刚立项时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.3-2《设计开发计划书》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n5",
+          "title": "设计开发输入评审",
+          "description": "建议时间：项目刚立项时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.3-3《设计和开发输入评审表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 4,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n6",
+          "title": "设计开发输出评审",
+          "description": "建议时间：项目已立项，开始执行之前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.3-4《设计和开发输出评审记录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 5,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n7",
+          "title": "采购过程（供方评价、外包评审、采购检查、验收）",
+          "description": "建议时间：实时，发生采购活动时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.4-1《供方评价单》"
+            },
+            {
+              "id": "pg-doc-2",
+              "name": "8.4-2《外包评审表》"
+            },
+            {
+              "id": "pg-doc-3",
+              "name": "8.4-3《采购(外包)检查单》"
+            },
+            {
+              "id": "pg-doc-4",
+              "name": "8.4-4《采购（外包）验收报告》"
+            },
+            {
+              "id": "pg-doc-5",
+              "name": "8.4-5《采购（外包）验收准则》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 6,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n8",
+          "title": "项目延期沟通记录",
+          "description": "建议时间：实时，根据项目需要",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "7.4-1《内外部沟通交流记录单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 7,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n9",
+          "title": "测试大纲、测试报告、测试记录",
+          "description": "建议时间：提交甲方测试之前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "0-6《测试报告 测试大纲 测试记录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 8,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n10",
+          "title": "课题验收申请单（出校检验）",
+          "description": "建议时间：提交甲方验收之前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.6-1《项目验收申请单（出校检验）》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 9,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n11",
+          "title": "产品交付清单",
+          "description": "建议时间：验收交付时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.6-2《产品交付清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 10,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-project-general-n12",
+          "title": "售后服务计划（如有）",
+          "description": "建议时间：实时，根据项目需要",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.6-3《售后服务计划落实情况表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 11,
+          "planned_date": ""
+        }
+      ],
+      "edges": [
+        {
+          "id": "5a894721a5ee449e919ad0940ce70d1a",
+          "source": "preset-project-general-n1",
+          "target": "preset-project-general-n2"
+        },
+        {
+          "id": "5d2fce1531544bea914f32dc3a949f26",
+          "source": "preset-project-general-n2",
+          "target": "preset-project-general-n3"
+        },
+        {
+          "id": "c1d4a769f72443e18aa49b58cb010429",
+          "source": "preset-project-general-n3",
+          "target": "preset-project-general-n4"
+        },
+        {
+          "id": "59bb78e2927141cf8cb3843c3411b684",
+          "source": "preset-project-general-n4",
+          "target": "preset-project-general-n5"
+        },
+        {
+          "id": "5ccfa34de4f244948f6128199b4e46d9",
+          "source": "preset-project-general-n5",
+          "target": "preset-project-general-n6"
+        },
+        {
+          "id": "1806e9afbe1b45748cd3c892ec962864",
+          "source": "preset-project-general-n6",
+          "target": "preset-project-general-n7"
+        },
+        {
+          "id": "5ebce65073b742b5a64d126f1d2055d1",
+          "source": "preset-project-general-n7",
+          "target": "preset-project-general-n8"
+        },
+        {
+          "id": "46a40301cef240f5b2a354e41a852f70",
+          "source": "preset-project-general-n8",
+          "target": "preset-project-general-n9"
+        },
+        {
+          "id": "01bdec5da60a41fca48d6feada7f0928",
+          "source": "preset-project-general-n9",
+          "target": "preset-project-general-n10"
+        },
+        {
+          "id": "3efae57705514ae1a69efcfca50694a1",
+          "source": "preset-project-general-n10",
+          "target": "preset-project-general-n11"
+        },
+        {
+          "id": "5150a3737834444c911d900c9d26eda9",
+          "source": "preset-project-general-n11",
+          "target": "preset-project-general-n12"
+        }
+      ]
+    },
+    {
+      "id": "preset-school",
+      "name": "全校 · 科研院",
+      "description": "包含全校和科研院层面的 49 项管理事项，按年度工作节奏分组。",
+      "nodes": [
+        {
+          "id": "preset-school-s1",
+          "title": "目标与策划",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-1",
+          "title": "文件清单",
+          "description": "建议时间：半年一次，外审前定稿",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-11",
+              "name": "7.5-1《文件清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s1",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-2",
+          "title": "策划全校质量目标",
+          "description": "建议时间：年初",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-21",
+              "name": "6.2-1《质量目标策划_考核表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s1",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-3",
+          "title": "考核全校质量目标（年中）",
+          "description": "建议时间：6月",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-31",
+              "name": "6.2-1《质量目标策划_考核表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s1",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-4",
+          "title": "考核全校质量目标（年末）",
+          "description": "建议时间：11月，内审前后",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-41",
+              "name": "6.2-1《质量目标策划_考核表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s1",
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-5",
+          "title": "识别全校风险、相关方与内外环境",
+          "description": "建议时间：年初",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-51",
+              "name": "6.1-1《风险和机遇识别清单和控制措施评价表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s1",
+          "order_index": 4,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-6",
+          "title": "组织学院确定支撑产品方向的项目",
+          "description": "建议时间：年初",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-61",
+              "name": "附件7《拟申请纳入质量体系项目信息表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s1",
+          "order_index": 5,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-s2",
+          "title": "台账与设备",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-7",
+          "title": "组织学院和项目组编制结点材料",
+          "description": "建议时间：全年随时",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-8",
+          "title": "组织编制人员台账",
+          "description": "建议时间：半年一次，外审前定稿发放学院",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-81",
+              "name": "7.2-4《专业技术人员队伍和管理人员汇总表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-9",
+          "title": "组织编制生产设备台账",
+          "description": "建议时间：半年一次，外审前定稿发放学院",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-91",
+              "name": "7.1.3-2《生产设备台账》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-10",
+          "title": "组织编制生产设备使用维护计划",
+          "description": "建议时间：随项目材料审查更新",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-101",
+              "name": "7.1.3-3《生产设备使用维护计划_记录表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-11",
+          "title": "组织编制测量设备台账",
+          "description": "建议时间：半年一次，外审前定稿发放学院",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-111",
+              "name": "7.1.5-1《测量设备台账》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 4,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-12",
+          "title": "组织编制测量设备使用维护计划",
+          "description": "建议时间：随项目材料审查更新",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-121",
+              "name": "7.1.5-2《测量设备使用维护计划_记录表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 5,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-13",
+          "title": "组织测量设备检定与状态标识",
+          "description": "建议时间：年中",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-131",
+              "name": "7.1.5-4《设备检定校准结果确认表》"
+            },
+            {
+              "id": "ps-doc-132",
+              "name": "7.1.5-5《测试软件确认表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 6,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-14",
+          "title": "确认并控制顾客财产",
+          "description": "建议时间：随项目材料审查更新",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-141",
+              "name": "8.5.3《顾客财产清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s2",
+          "order_index": 7,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-s3",
+          "title": "知识与培训",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-15",
+          "title": "更新学校组织知识清单",
+          "description": "建议时间：半年一次，外审前定稿",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-151",
+              "name": "7.1.6《组织知识清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s3",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-16",
+          "title": "编制培训计划并评价有效性",
+          "description": "建议时间：年初拟定计划，实时记录更新并保存佐证，年末定稿",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-161",
+              "name": "7.2-1《年度培训计划》"
+            },
+            {
+              "id": "ps-doc-162",
+              "name": "7.2-2《培训签到表、有效性评价》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s3",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-17",
+          "title": "识别内外部沟通记录",
+          "description": "建议时间：年初拟定计划，实时记录更新并保存佐证，年末定稿",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-171",
+              "name": "7.4-2《内外部沟通》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s3",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-s4",
+          "title": "不合格品与顾客满意",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-18",
+          "title": "更新不合格品审理委员会",
+          "description": "建议时间：副院长更换时，cz年尽量找jdb签字",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-181",
+              "name": "8.7-1《不合格品审理小组》"
+            },
+            {
+              "id": "ps-doc-182",
+              "name": "8.7-2《不合格品通知审理单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s4",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-19",
+          "title": "组织顾客满意度调查",
+          "description": "建议时间：年初一次，新项目纳入时/年末更新一次",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-191",
+              "name": "9.1.2-1《顾客满意度调查表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s4",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-20",
+          "title": "撰写顾客满意度分析报告",
+          "description": "建议时间：年末",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-201",
+              "name": "9.1.2-2《顾客满意度分析报告》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s4",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-s5",
+          "title": "人员与供方",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 4,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-21",
+          "title": "组织检验员培训、考核与授权",
+          "description": "建议时间：年初一次，新项目纳入时/年末更新一次",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-211",
+              "name": "7.2-7《检验员授权单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s5",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-22",
+          "title": "组织内审员培训、考核与授权",
+          "description": "建议时间：根据实际情况确保部门人员证书在有效期内",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-221",
+              "name": "7.2-6《内审员授权单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s5",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-23",
+          "title": "发布合格供方名录",
+          "description": "建议时间：年初一次，实时更新，年末更新并发布",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-231",
+              "name": "8.4-9《合格供方名录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s5",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-24",
+          "title": "抽查学院一般级项目完成情况",
+          "description": "建议时间：内审时自行抽查，不提交专家",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-241",
+              "name": "附件10 质量体系节点管理清单"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s5",
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-s6",
+          "title": "内审与管理评审",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 5,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-25",
+          "title": "组织内审并整改",
+          "description": "建议时间：年末",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s6",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-26",
+          "title": "内审报告",
+          "description": "建议时间：管评会之前",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-261",
+              "name": "9.2 9.3《2025年内审及管评报告》251208_加目录插页"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s6",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-27",
+          "title": "编制体系运行报告",
+          "description": "建议时间：管评会之前",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-271",
+              "name": "9.2-4《xx机关GJB质量管理体系运行工作报告》"
+            },
+            {
+              "id": "ps-doc-272",
+              "name": "9.2-4《xx学院GJB质量管理体系运行工作报告》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s6",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-28",
+          "title": "组织管理评审会",
+          "description": "建议时间：年末",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s6",
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-29",
+          "title": "管评报告",
+          "description": "建议时间：年末",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-291",
+              "name": "9.2 9.3《2025年内审及管评报告》251208_加目录插页"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s6",
+          "order_index": 4,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-s7",
+          "title": "年末收尾",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 6,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-30",
+          "title": "下一年度质量目标策划",
+          "description": "建议时间：年末",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-301",
+              "name": "6.2-1《质量目标策划_考核表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-31",
+          "title": "编制应知应会材料",
+          "description": "建议时间：年末",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-32",
+          "title": "受控文件登记清单",
+          "description": "建议时间：年中",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-321",
+              "name": "7.5-6《现行受控文件清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-33",
+          "title": "体系文件收发登记",
+          "description": "建议时间：年中",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-331",
+              "name": "7.5-2《文件发放、回收登记表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-34",
+          "title": "统计全年人才、成果、设施数据",
+          "description": "建议时间：年末",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 4,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-35",
+          "title": "上一年新交付项目放行",
+          "description": "建议时间：外审前",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-351",
+              "name": "8.6-1《项目验收申请单（出校检验）》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 5,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-36",
+          "title": "提供项目能力延续证明",
+          "description": "建议时间：外审前",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-361",
+              "name": "0-7 延续能力明"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 6,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-37",
+          "title": "通知文件扫描归档",
+          "description": "建议时间：外审后",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 7,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-38",
+          "title": "开具工作证明",
+          "description": "建议时间：外审后",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-381",
+              "name": "北京邮电大学GJB9001C质量体系运行维护工作证明"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s7",
+          "order_index": 8,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-s8",
+          "title": "CZ 续审材料",
+          "description": "",
+          "category": "主流程",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 7,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-39",
+          "title": "全校年度考核材料（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "ps-doc-391",
+              "name": "7.2-1《年度培训计划》"
+            },
+            {
+              "id": "ps-doc-392",
+              "name": "7.2-2《培训签到表、有效性评价》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 0,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-40",
+          "title": "编制关键岗位说明书（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 1,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-41",
+          "title": "实验室安全管理记录（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 2,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-42",
+          "title": "单位使用房屋情况（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 3,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-43",
+          "title": "GF实验室平台信息台账（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 4,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-44",
+          "title": "土地产权信息与证书（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 5,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-45",
+          "title": "财务数据（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 6,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-46",
+          "title": "校园安全（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 7,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-47",
+          "title": "环境污染控制（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 8,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-48",
+          "title": "保密管理（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 9,
+          "planned_date": ""
+        },
+        {
+          "id": "preset-school-49",
+          "title": "全校规章制度汇编（CZ续审年）",
+          "description": "建议时间：CZ续审年",
+          "category": "全校管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "preset-school-s8",
+          "order_index": 10,
+          "planned_date": ""
+        }
+      ],
+      "edges": [
+        {
+          "id": "592c975a32f24fefb2dc1cc218c54656",
+          "source": "preset-school-1",
+          "target": "preset-school-2"
+        },
+        {
+          "id": "56cefff581ee488ebca4757922a90a7e",
+          "source": "preset-school-2",
+          "target": "preset-school-3"
+        },
+        {
+          "id": "a98f2c38b1d342299d0b4dbb51dd569e",
+          "source": "preset-school-3",
+          "target": "preset-school-4"
+        },
+        {
+          "id": "ff414e37c797447989da0a9ec90ed234",
+          "source": "preset-school-4",
+          "target": "preset-school-5"
+        },
+        {
+          "id": "69b971adcef64e4a8c57e20239014509",
+          "source": "preset-school-5",
+          "target": "preset-school-6"
+        },
+        {
+          "id": "3495204a6a3f459bbf7b6c1b8a7457ba",
+          "source": "preset-school-s1",
+          "target": "preset-school-s2"
+        },
+        {
+          "id": "da3c4610fd6148ee9bde9d5a901d2e98",
+          "source": "preset-school-7",
+          "target": "preset-school-8"
+        },
+        {
+          "id": "79b6c088e60a4806abc30000f31e1469",
+          "source": "preset-school-8",
+          "target": "preset-school-9"
+        },
+        {
+          "id": "7e62d58b778d4745a63587793ebda48b",
+          "source": "preset-school-9",
+          "target": "preset-school-10"
+        },
+        {
+          "id": "24996ada3fa24521b84dcf3305505fb3",
+          "source": "preset-school-10",
+          "target": "preset-school-11"
+        },
+        {
+          "id": "b377252ca2ea45bd9ec6b4d78e94e92d",
+          "source": "preset-school-11",
+          "target": "preset-school-12"
+        },
+        {
+          "id": "1a8510bfcf004430893bb03132308d93",
+          "source": "preset-school-12",
+          "target": "preset-school-13"
+        },
+        {
+          "id": "d1776bd8cfa3463780bf9b3bdcaa22ef",
+          "source": "preset-school-13",
+          "target": "preset-school-14"
+        },
+        {
+          "id": "9b1ccd18259146e48916f33cf089e334",
+          "source": "preset-school-s2",
+          "target": "preset-school-s3"
+        },
+        {
+          "id": "27a94d6b477a45ccb534916fce8bc277",
+          "source": "preset-school-15",
+          "target": "preset-school-16"
+        },
+        {
+          "id": "11a7b46df8d54004a6ea7c82c2c29e6c",
+          "source": "preset-school-16",
+          "target": "preset-school-17"
+        },
+        {
+          "id": "bc71172743bd49f99eb02cccd7e5f314",
+          "source": "preset-school-s3",
+          "target": "preset-school-s4"
+        },
+        {
+          "id": "107e4413d3d74973a638fc694afae634",
+          "source": "preset-school-18",
+          "target": "preset-school-19"
+        },
+        {
+          "id": "87108c6806d74b2ba2144e71009e9c83",
+          "source": "preset-school-19",
+          "target": "preset-school-20"
+        },
+        {
+          "id": "e90f0b44c6304c5d98089afa0e4e3900",
+          "source": "preset-school-s4",
+          "target": "preset-school-s5"
+        },
+        {
+          "id": "2b0c9290bfc8407e8715f526871459ee",
+          "source": "preset-school-21",
+          "target": "preset-school-22"
+        },
+        {
+          "id": "d9a4048d8a624980a109622de33511b3",
+          "source": "preset-school-22",
+          "target": "preset-school-23"
+        },
+        {
+          "id": "006b75d76d7b47e5add3c8d8e1284a7b",
+          "source": "preset-school-23",
+          "target": "preset-school-24"
+        },
+        {
+          "id": "206b74d752944e88b5870c519b90e7a0",
+          "source": "preset-school-s5",
+          "target": "preset-school-s6"
+        },
+        {
+          "id": "071a5c93caf44d33a9d24a322448fbd1",
+          "source": "preset-school-25",
+          "target": "preset-school-26"
+        },
+        {
+          "id": "d7c28cd56ee04ba19906df7eb8433d2e",
+          "source": "preset-school-26",
+          "target": "preset-school-27"
+        },
+        {
+          "id": "0e67ca5a08024b79a11d06f42c859cf7",
+          "source": "preset-school-27",
+          "target": "preset-school-28"
+        },
+        {
+          "id": "2a68f33486e24d08bbc3bbcf8d552457",
+          "source": "preset-school-28",
+          "target": "preset-school-29"
+        },
+        {
+          "id": "dc3f741875f444aaaa7277587379b26f",
+          "source": "preset-school-s6",
+          "target": "preset-school-s7"
+        },
+        {
+          "id": "78913a6b6c64487eb5208bc5b2d3ace4",
+          "source": "preset-school-30",
+          "target": "preset-school-31"
+        },
+        {
+          "id": "98f53e00cbc247798ada797bed9f7036",
+          "source": "preset-school-31",
+          "target": "preset-school-32"
+        },
+        {
+          "id": "6864e06ab20248d69989f6f1153d5c4d",
+          "source": "preset-school-32",
+          "target": "preset-school-33"
+        },
+        {
+          "id": "bc461eded16b468bb3b21b0f765453b8",
+          "source": "preset-school-33",
+          "target": "preset-school-34"
+        },
+        {
+          "id": "a5ac866090d141e0bee085437507f23f",
+          "source": "preset-school-34",
+          "target": "preset-school-35"
+        },
+        {
+          "id": "6e4470e59b1f4df69e2beddd501c4316",
+          "source": "preset-school-35",
+          "target": "preset-school-36"
+        },
+        {
+          "id": "94de2d77af3344fd8d5aa56ecac2a129",
+          "source": "preset-school-36",
+          "target": "preset-school-37"
+        },
+        {
+          "id": "a4d2f86472fb4348b2d8e2ae3343e373",
+          "source": "preset-school-37",
+          "target": "preset-school-38"
+        },
+        {
+          "id": "92fa5e32898b4b309355875278ab633a",
+          "source": "preset-school-s7",
+          "target": "preset-school-s8"
+        },
+        {
+          "id": "aabf6b3b8bf44e0390bb25ac6ef039c6",
+          "source": "preset-school-39",
+          "target": "preset-school-40"
+        },
+        {
+          "id": "92012472f6c243f199d3bbcc035e9319",
+          "source": "preset-school-40",
+          "target": "preset-school-41"
+        },
+        {
+          "id": "36608c8834d74ed8958a647ff8fdde0d",
+          "source": "preset-school-41",
+          "target": "preset-school-42"
+        },
+        {
+          "id": "d1424c14b45d4bbd9e75588634a7687b",
+          "source": "preset-school-42",
+          "target": "preset-school-43"
+        },
+        {
+          "id": "dcf1d00f4a644e78b5cc90bb34f1e64e",
+          "source": "preset-school-43",
+          "target": "preset-school-44"
+        },
+        {
+          "id": "9684d9cd6f114a47b33120b9553f9145",
+          "source": "preset-school-44",
+          "target": "preset-school-45"
+        },
+        {
+          "id": "bc82fcfedc2f4ccc9f2cdb067a8bb07e",
+          "source": "preset-school-45",
+          "target": "preset-school-46"
+        },
+        {
+          "id": "58b69ce45d9640c4900db900c4e9445b",
+          "source": "preset-school-46",
+          "target": "preset-school-47"
+        },
+        {
+          "id": "9446348647b148eb88fa5ce2bd316ea4",
+          "source": "preset-school-47",
+          "target": "preset-school-48"
+        },
+        {
+          "id": "2186242c4a3a4bd987fab764982e15ab",
+          "source": "preset-school-48",
+          "target": "preset-school-49"
+        }
+      ]
     }
   ],
   "demo_groups": [
     {
-      "id": "demo-group",
-      "name": "示例老师",
-      "teacher": "示例学生",
-      "description": "用于体验流程图、节点说明和历次记录，内容均为演示数据。",
+      "id": "demo-important",
+      "name": "重要级·示例老师",
+      "teacher": "",
+      "description": "用于体验分级模板、节点说明和历次检查，内容均为演示数据。",
       "basic_info": {
         "项目名称": "示例项目",
         "项目状态": "在研"
@@ -1272,399 +2804,69 @@
       "updated_at": "2026-11-07T10:30:00+08:00",
       "nodes": [
         {
-          "id": "demo-node-1",
-          "title": "文件清单",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "基础台账与人员配合",
+          "id": "section-preset-project-important-1",
+          "title": "基础准备",
+          "description": "",
+          "category": "主流程",
           "x": 60,
           "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-1-1",
-              "name": "7.5-1《文件清单》"
-            }
-          ],
+          "templates": [],
           "archived": false,
-          "records": [
-            {
-              "id": "record-demo-node-1-1",
-              "version": 1,
-              "created_at": "2026-11-03T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "已完成",
-              "note": "示例记录：本次检查已完成。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-1-1",
-                  "name": "7.5-1《文件清单》",
-                  "status": "已完成",
-                  "note": ""
-                }
-              ],
-              "node_title": "文件清单",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            }
-          ],
           "parent_id": null,
-          "order_index": 0
+          "order_index": 0,
+          "planned_date": "",
+          "records": [],
+          "favorite": false
         },
         {
-          "id": "demo-node-2",
-          "title": "设计开发计划",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "项目评审与研制材料",
+          "id": "section-preset-project-important-2",
+          "title": "评审与研制",
+          "description": "",
+          "category": "主流程",
           "x": 360,
           "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-2-1",
-              "name": "8.3-2《设计开发计划书》"
-            }
-          ],
+          "templates": [],
           "archived": false,
-          "records": [
-            {
-              "id": "record-demo-node-2-1",
-              "version": 1,
-              "created_at": "2026-11-03T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "已完成",
-              "note": "示例记录：本次检查已完成。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-2-1",
-                  "name": "8.3-2《设计开发计划书》",
-                  "status": "已完成",
-                  "note": ""
-                }
-              ],
-              "node_title": "设计开发计划",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            }
-          ],
           "parent_id": null,
-          "order_index": 1
+          "order_index": 1,
+          "planned_date": "",
+          "records": [],
+          "favorite": false
         },
         {
-          "id": "demo-node-3",
-          "title": "输入评审",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "项目评审与研制材料",
+          "id": "section-preset-project-important-3",
+          "title": "关键与特殊过程",
+          "description": "",
+          "category": "主流程",
           "x": 660,
           "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-3-1",
-              "name": "8.3-3《设计和开发输入评审表》"
-            }
-          ],
+          "templates": [],
           "archived": false,
-          "records": [
-            {
-              "id": "record-demo-node-3-1",
-              "version": 1,
-              "created_at": "2026-11-03T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "已完成",
-              "note": "示例记录：本次检查已完成。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-3-1",
-                  "name": "8.3-3《设计和开发输入评审表》",
-                  "status": "已完成",
-                  "note": ""
-                }
-              ],
-              "node_title": "输入评审",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            }
-          ],
           "parent_id": null,
-          "order_index": 2
+          "order_index": 2,
+          "planned_date": "",
+          "records": [],
+          "favorite": false
         },
         {
-          "id": "demo-node-4",
-          "title": "输出评审",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "项目评审与研制材料",
+          "id": "section-preset-project-important-4",
+          "title": "采购与外包",
+          "description": "",
+          "category": "主流程",
           "x": 960,
           "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-4-1",
-              "name": "8.3-4《设计和开发输出评审记录》"
-            }
-          ],
+          "templates": [],
           "archived": false,
-          "records": [
-            {
-              "id": "record-demo-node-4-1",
-              "version": 1,
-              "created_at": "2026-11-05T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "待检查",
-              "note": "示例记录：材料已准备，等待检查。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-4-1",
-                  "name": "8.3-4《设计和开发输出评审记录》",
-                  "status": "待检查",
-                  "note": ""
-                }
-              ],
-              "node_title": "输出评审",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            }
-          ],
           "parent_id": null,
-          "order_index": 3
-        },
-        {
-          "id": "demo-node-5",
-          "title": "第1次采购",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "供方与采购外包",
-          "x": 60,
-          "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-5-1",
-              "name": "8.4-1《供方评价单》"
-            },
-            {
-              "id": "demo-doc-5-2",
-              "name": "8.4-5《采购（外包）验收准则》"
-            },
-            {
-              "id": "demo-doc-5-3",
-              "name": "8.4-4《采购（外包）验收报告》"
-            },
-            {
-              "id": "demo-doc-5-4",
-              "name": "8.4-3《采购（外包）检查单》"
-            }
-          ],
-          "archived": false,
-          "records": [
-            {
-              "id": "record-demo-node-5-1",
-              "version": 1,
-              "created_at": "2026-11-03T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "未开始",
-              "note": "示例记录：已确认需要准备四份材料。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-5-1",
-                  "name": "8.4-1《供方评价单》",
-                  "status": "未开始",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-2",
-                  "name": "8.4-5《采购（外包）验收准则》",
-                  "status": "未开始",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-3",
-                  "name": "8.4-4《采购（外包）验收报告》",
-                  "status": "未开始",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-4",
-                  "name": "8.4-3《采购（外包）检查单》",
-                  "status": "未开始",
-                  "note": ""
-                }
-              ],
-              "node_title": "第1次采购",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            },
-            {
-              "id": "record-demo-node-5-2",
-              "version": 2,
-              "created_at": "2026-11-05T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "需修改",
-              "note": "示例记录：供方评价已完成，检查单需要补充。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-5-1",
-                  "name": "8.4-1《供方评价单》",
-                  "status": "已完成",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-2",
-                  "name": "8.4-5《采购（外包）验收准则》",
-                  "status": "已完成",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-3",
-                  "name": "8.4-4《采购（外包）验收报告》",
-                  "status": "待检查",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-4",
-                  "name": "8.4-3《采购（外包）检查单》",
-                  "status": "需修改",
-                  "note": ""
-                }
-              ],
-              "node_title": "第1次采购",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            },
-            {
-              "id": "record-demo-node-5-3",
-              "version": 3,
-              "created_at": "2026-11-07T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "待检查",
-              "note": "示例记录：已补充检查单，等待本次检查。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-5-1",
-                  "name": "8.4-1《供方评价单》",
-                  "status": "已完成",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-2",
-                  "name": "8.4-5《采购（外包）验收准则》",
-                  "status": "已完成",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-3",
-                  "name": "8.4-4《采购（外包）验收报告》",
-                  "status": "待检查",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-5-4",
-                  "name": "8.4-3《采购（外包）检查单》",
-                  "status": "待检查",
-                  "note": ""
-                }
-              ],
-              "node_title": "第1次采购",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            }
-          ],
-          "parent_id": "demo-procurement",
-          "order_index": 0
-        },
-        {
-          "id": "demo-node-6",
-          "title": "第2次采购",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "供方与采购外包",
-          "x": 360,
-          "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-6-1",
-              "name": "8.4-1《供方评价单》"
-            },
-            {
-              "id": "demo-doc-6-2",
-              "name": "8.4-5《采购（外包）验收准则》"
-            },
-            {
-              "id": "demo-doc-6-3",
-              "name": "8.4-4《采购（外包）验收报告》"
-            },
-            {
-              "id": "demo-doc-6-4",
-              "name": "8.4-3《采购（外包）检查单》"
-            }
-          ],
-          "archived": false,
-          "records": [
-            {
-              "id": "record-demo-node-6-1",
-              "version": 1,
-              "created_at": "2026-11-06T10:30:00+08:00",
-              "author": "示例老师",
-              "status": "进行中",
-              "note": "示例记录：第二次采购单独填写一套材料。",
-              "documents": [
-                {
-                  "template_id": "demo-doc-6-1",
-                  "name": "8.4-1《供方评价单》",
-                  "status": "进行中",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-6-2",
-                  "name": "8.4-5《采购（外包）验收准则》",
-                  "status": "未开始",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-6-3",
-                  "name": "8.4-4《采购（外包）验收报告》",
-                  "status": "未开始",
-                  "note": ""
-                },
-                {
-                  "template_id": "demo-doc-6-4",
-                  "name": "8.4-3《采购（外包）检查单》",
-                  "status": "未开始",
-                  "note": ""
-                }
-              ],
-              "node_title": "第2次采购",
-              "node_description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。"
-            }
-          ],
-          "parent_id": "demo-procurement",
-          "order_index": 1
-        },
-        {
-          "id": "demo-node-7",
-          "title": "产品交付清单",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "测试验收与交付售后",
-          "x": 1560,
-          "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-7-1",
-              "name": "8.6-2《产品交付清单》"
-            }
-          ],
-          "archived": false,
+          "order_index": 3,
+          "planned_date": "",
           "records": [],
-          "parent_id": null,
-          "order_index": 5
+          "favorite": false
         },
         {
-          "id": "demo-node-8",
-          "title": "售后服务计划",
-          "description": "示例说明：此处可以填写本节点的工作要求、适用情况和填写注意事项。",
-          "category": "测试验收与交付售后",
-          "x": 1860,
-          "y": 70,
-          "templates": [
-            {
-              "id": "demo-doc-8-1",
-              "name": "8.6-3《售后服务计划落实情况表》"
-            }
-          ],
-          "archived": false,
-          "records": [],
-          "parent_id": null,
-          "order_index": 6
-        },
-        {
-          "id": "demo-procurement",
-          "title": "采购与外包",
-          "description": "示例说明：可以在下级流程中分别记录每次采购与外包事项。",
+          "id": "section-preset-project-important-5",
+          "title": "交接与沟通",
+          "description": "",
           "category": "主流程",
           "x": 1260,
           "y": 70,
@@ -1673,46 +2875,1346 @@
           "parent_id": null,
           "order_index": 4,
           "planned_date": "",
-          "records": []
+          "records": [],
+          "favorite": false
+        },
+        {
+          "id": "section-preset-project-important-6",
+          "title": "验收与交付",
+          "description": "",
+          "category": "主流程",
+          "x": 1560,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 5,
+          "planned_date": "",
+          "records": [],
+          "favorite": false
+        },
+        {
+          "id": "section-preset-project-important-7",
+          "title": "财产与变更",
+          "description": "",
+          "category": "主流程",
+          "x": 1860,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "parent_id": null,
+          "order_index": 6,
+          "planned_date": "",
+          "records": [],
+          "favorite": false
+        },
+        {
+          "id": "preset-project-as",
+          "title": "文件清单（技术/管理）",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-as-1",
+              "name": "7.5-1《文件清单》"
+            }
+          ],
+          "archived": false,
+          "records": [
+            {
+              "id": "demo-imp-1-r1",
+              "version": 1,
+              "created_at": "2026-11-03T10:30:00+08:00",
+              "author": "示例老师",
+              "status": "已完成",
+              "note": "示例记录：文件清单已按模板整理完成。",
+              "documents": [
+                {
+                  "template_id": "p-as-1",
+                  "name": "7.5-1《文件清单》",
+                  "status": "已完成",
+                  "note": ""
+                }
+              ],
+              "node_title": "",
+              "node_description": ""
+            },
+            {
+              "id": "demo-imp-1-r2",
+              "version": 2,
+              "created_at": "2026-11-06T09:15:00+08:00",
+              "author": "示例老师",
+              "status": "已完成",
+              "note": "示例记录：补充了新增项目的文件条目。",
+              "documents": [
+                {
+                  "template_id": "p-as-1",
+                  "name": "7.5-1《文件清单》",
+                  "status": "已完成",
+                  "note": "已更新到最新版本"
+                }
+              ],
+              "node_title": "",
+              "node_description": ""
+            }
+          ],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-at",
+          "title": "人员台账",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 360,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-at-1",
+              "name": "7.2-4《专业技术人员队伍和管理人员汇总表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-au",
+          "title": "生产设备台账、维护使用计划",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 660,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-au-1",
+              "name": "7.1.3-2《生产设备台账》"
+            },
+            {
+              "id": "p-au-2",
+              "name": "7.1.3-3《生产设备使用维护计划_记录表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 2,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-av",
+          "title": "测量设备台账、维护使用计划（含代采购结果确认与测量软件确认）",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 960,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-av-1",
+              "name": "7.1.5-1《测量设备台账》"
+            },
+            {
+              "id": "p-av-2",
+              "name": "7.1.5-2《测量设备使用维护计划_记录表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 3,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-aw",
+          "title": "测量设备检定、证书与确认单",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 1260,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-aw-1",
+              "name": "7.1.5-3《监视和测量设备周期检定计划表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 4,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-ax",
+          "title": "测量设备标识、确认单与说明书存档",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 1560,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-ax-1",
+              "name": "7.1.5-4《设备检定校准结果确认表》"
+            },
+            {
+              "id": "p-ax-2",
+              "name": "7.1.5-5《测试软件确认表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 5,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-ay",
+          "title": "内部培训、对内外沟通记录（每年至少3次）",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 1860,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-ay-1",
+              "name": "7.2-1《年度培训计划》"
+            },
+            {
+              "id": "p-ay-2",
+              "name": "7.2-2《培训签到表、有效性评价》"
+            },
+            {
+              "id": "p-ay-3",
+              "name": "7.4-2《内外部沟通》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 6,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-az",
+          "title": "顾客满意度调查（每6个月一次）",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 2160,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-az-1",
+              "name": "9.1.2-1《顾客满意度调查表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 7,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-ba",
+          "title": "检验员培训、答题与授权单",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 2460,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 8,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bb",
+          "title": "内审员授权",
+          "description": "",
+          "category": "基础台账与人员配合",
+          "x": 2760,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-1",
+          "order_index": 9,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bc",
+          "title": "合同评审（评审日期在签署日期之前）",
+          "description": "",
+          "category": "项目评审与研制材料",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bc-1",
+              "name": "8.2-1《产品和服务要求评审（合同评审）》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-2",
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bd",
+          "title": "质量保证大纲",
+          "description": "",
+          "category": "项目评审与研制材料",
+          "x": 360,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bd-1",
+              "name": "8.1-1《质量保证大纲》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-2",
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-be",
+          "title": "设计开发计划",
+          "description": "",
+          "category": "项目评审与研制材料",
+          "x": 660,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-be-1",
+              "name": "8.3-2《设计开发计划书》"
+            }
+          ],
+          "archived": false,
+          "records": [
+            {
+              "id": "demo-imp-2-r1",
+              "version": 1,
+              "created_at": "2026-11-05T14:20:00+08:00",
+              "author": "示例老师",
+              "status": "待检查",
+              "note": "示例记录：计划书已提交，等待检查。",
+              "documents": [
+                {
+                  "template_id": "p-be-1",
+                  "name": "8.3-2《设计开发计划书》",
+                  "status": "待检查",
+                  "note": ""
+                }
+              ],
+              "node_title": "",
+              "node_description": ""
+            }
+          ],
+          "parent_id": "section-preset-project-important-2",
+          "order_index": 2,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bf",
+          "title": "输入评审",
+          "description": "",
+          "category": "项目评审与研制材料",
+          "x": 960,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bf-1",
+              "name": "8.3-3《设计和开发输入评审表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-2",
+          "order_index": 3,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bg",
+          "title": "输出评审",
+          "description": "",
+          "category": "项目评审与研制材料",
+          "x": 1260,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bg-1",
+              "name": "8.3-4《设计和开发输出评审记录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-2",
+          "order_index": 4,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bh",
+          "title": "其他要求节点的评审（如有）",
+          "description": "",
+          "category": "项目评审与研制材料",
+          "x": 1560,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bh-1",
+              "name": "0-5《评审报告》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-2",
+          "order_index": 5,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bi",
+          "title": "项目技术文档（采用甲方模板）",
+          "description": "",
+          "category": "项目评审与研制材料",
+          "x": 1860,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-2",
+          "order_index": 6,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bj",
+          "title": "硬件产品关键过程控制",
+          "description": "",
+          "category": "关键与特殊过程",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bj-1",
+              "name": "8.5.7-0《关键件明细表》"
+            },
+            {
+              "id": "p-bj-2",
+              "name": "8.5.7-1《关键过程明细表》"
+            },
+            {
+              "id": "p-bj-3",
+              "name": "8.5.7-2《关键过程三定确认表》"
+            },
+            {
+              "id": "p-bj-4",
+              "name": "8.5.7-3《工艺验证和评审记录》"
+            },
+            {
+              "id": "p-bj-5",
+              "name": "8.5.7-4《首件产品自检、专检记录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-3",
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bk",
+          "title": "硬件产品特殊过程控制",
+          "description": "",
+          "category": "关键与特殊过程",
+          "x": 360,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bk-1",
+              "name": "8.5.1-1《特殊过程明细表》"
+            },
+            {
+              "id": "p-bk-2",
+              "name": "8.5.1-2《特殊过程确认记录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-3",
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bl",
+          "title": "合格供方名录",
+          "description": "",
+          "category": "供方与采购外包",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bl-1",
+              "name": "8.4-9《合格供方名录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-4",
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bm",
+          "title": "采购过程（每次采购填写一套）",
+          "description": "",
+          "category": "供方与采购外包",
+          "x": 360,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bm-1",
+              "name": "8.4-1《供方评价单》"
+            },
+            {
+              "id": "p-bm-2",
+              "name": "8.4-5《采购（外包）验收准则》"
+            },
+            {
+              "id": "p-bm-3",
+              "name": "8.4-4《采购（外包）验收报告》"
+            },
+            {
+              "id": "p-bm-4",
+              "name": "8.4-3《采购（外包）检查单》"
+            }
+          ],
+          "archived": false,
+          "records": [
+            {
+              "id": "demo-imp-3-r1",
+              "version": 1,
+              "created_at": "2026-11-07T10:30:00+08:00",
+              "author": "示例老师",
+              "status": "进行中",
+              "note": "示例记录：已补充检查单，等待本次检查。",
+              "documents": [
+                {
+                  "template_id": "p-bm-1",
+                  "name": "8.4-1《供方评价单》",
+                  "status": "已完成",
+                  "note": ""
+                },
+                {
+                  "template_id": "p-bm-2",
+                  "name": "8.4-5《采购（外包）验收准则》",
+                  "status": "已完成",
+                  "note": ""
+                },
+                {
+                  "template_id": "p-bm-3",
+                  "name": "8.4-4《采购（外包）验收报告》",
+                  "status": "待检查",
+                  "note": ""
+                },
+                {
+                  "template_id": "p-bm-4",
+                  "name": "8.4-3《采购（外包）检查单》",
+                  "status": "待检查",
+                  "note": ""
+                }
+              ],
+              "node_title": "采购过程（每次采购填写一套）",
+              "node_description": ""
+            }
+          ],
+          "parent_id": "section-preset-project-important-4",
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bn",
+          "title": "采购合同与营业执照",
+          "description": "",
+          "category": "供方与采购外包",
+          "x": 660,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-4",
+          "order_index": 2,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bo",
+          "title": "外包评审（有外协时确认质量要求）",
+          "description": "",
+          "category": "供方与采购外包",
+          "x": 960,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bo-1",
+              "name": "8.4-2《外包评审表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-4",
+          "order_index": 3,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bp",
+          "title": "质量协议及附件（外包涉及关键或特殊过程控制时）",
+          "description": "",
+          "category": "供方与采购外包",
+          "x": 1260,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bp-1",
+              "name": "8.4-7《质量协议》"
+            },
+            {
+              "id": "p-bp-2",
+              "name": "8.4-6 质量协议附件《质量控制细则》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-4",
+          "order_index": 4,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bq",
+          "title": "甲方交接记录",
+          "description": "",
+          "category": "甲方交接与延期沟通",
+          "x": 60,
+          "y": 70,
+          "templates": [],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-5",
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-br",
+          "title": "延期沟通与备产协议",
+          "description": "",
+          "category": "甲方交接与延期沟通",
+          "x": 360,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-br-1",
+              "name": "7.4-2《内外部沟通》"
+            },
+            {
+              "id": "p-br-2",
+              "name": "8.4-8《备产协议》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-5",
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bs",
+          "title": "验收测试大纲、报告、记录与评审",
+          "description": "",
+          "category": "测试验收与交付售后",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bs-1",
+              "name": "0-5《评审报告》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-6",
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bt",
+          "title": "验收申请单",
+          "description": "",
+          "category": "测试验收与交付售后",
+          "x": 360,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bt-1",
+              "name": "8.6-1《项目验收申请单（出校检验）》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-6",
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bu",
+          "title": "产品交付清单",
+          "description": "建议时间：验收交付时",
+          "category": "测试验收与交付售后",
+          "x": 660,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bu-1",
+              "name": "8.6-2《产品交付清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-6",
+          "order_index": 2,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bv",
+          "title": "售后服务计划",
+          "description": "",
+          "category": "测试验收与交付售后",
+          "x": 960,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bv-1",
+              "name": "8.6-3《售后服务计划落实情况表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-6",
+          "order_index": 3,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bw",
+          "title": "顾客财产控制（交付成果以外，定期维护）",
+          "description": "",
+          "category": "顾客财产与变更",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bw-1",
+              "name": "8.5.3《顾客财产清单》"
+            },
+            {
+              "id": "p-bw-2",
+              "name": "7.1.5-2《生产/测量设备使用维护计划_记录表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-7",
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-bx",
+          "title": "变更控制（如有回归测试）",
+          "description": "",
+          "category": "顾客财产与变更",
+          "x": 360,
+          "y": 70,
+          "templates": [
+            {
+              "id": "p-bx-1",
+              "name": "8.3-7《设计更改申请通知单》"
+            },
+            {
+              "id": "p-bx-2",
+              "name": "8.3-10《技术状态更改通知单》"
+            },
+            {
+              "id": "p-bx-3",
+              "name": "7.2-2《培训签到表、有效性评价》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": "section-preset-project-important-7",
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
         }
       ],
       "edges": [
         {
-          "id": "8c6179d8e3e24acbb9eb7834fa4d845f",
-          "source": "demo-node-1",
-          "target": "demo-node-2"
+          "id": "146782cd40ed4feea2e85d2255b0792f",
+          "source": "preset-project-as",
+          "target": "preset-project-at"
         },
         {
-          "id": "0c31b591af7b4213adf531091fdcee23",
-          "source": "demo-node-2",
-          "target": "demo-node-3"
+          "id": "d21d5218050a4309aea476b02dd3dfda",
+          "source": "preset-project-at",
+          "target": "preset-project-au"
         },
         {
-          "id": "cc1be6f271b2438281e2d3429736b5e5",
-          "source": "demo-node-3",
-          "target": "demo-node-4"
+          "id": "475deabd47ce4c11a61406573577d2c1",
+          "source": "preset-project-au",
+          "target": "preset-project-av"
         },
         {
-          "id": "42c9816f64fe4a43af2fe130415d90d1",
-          "source": "demo-node-4",
-          "target": "demo-procurement"
+          "id": "15a4c2bcf3404cb4b45559fb7b9fc4c5",
+          "source": "preset-project-av",
+          "target": "preset-project-aw"
         },
         {
-          "id": "0ec7baab622c44fa8474f30d6717f4e2",
-          "source": "demo-procurement",
-          "target": "demo-node-7"
+          "id": "190afc800f7a4fdb8ceb645b3d79da90",
+          "source": "preset-project-aw",
+          "target": "preset-project-ax"
         },
         {
-          "id": "ad714d48cc92480f947b37dfbd7f2bd2",
-          "source": "demo-node-7",
-          "target": "demo-node-8"
+          "id": "23d4802d7ef446628062fc823432564c",
+          "source": "preset-project-ax",
+          "target": "preset-project-ay"
         },
         {
-          "id": "a8c7a56a49704ccd928b0ef0d0b20b86",
-          "source": "demo-node-5",
-          "target": "demo-node-6"
+          "id": "e55a214084c3430db1322e59c75d5e27",
+          "source": "preset-project-ay",
+          "target": "preset-project-az"
+        },
+        {
+          "id": "d1a7131f341040a5b840a8c4eba421b1",
+          "source": "preset-project-az",
+          "target": "preset-project-ba"
+        },
+        {
+          "id": "f7baa5fdabd244638e440ac1f0561f17",
+          "source": "preset-project-ba",
+          "target": "preset-project-bb"
+        },
+        {
+          "id": "6320ecc0ae1642a9ad623b10b7729d88",
+          "source": "preset-project-bc",
+          "target": "preset-project-bd"
+        },
+        {
+          "id": "f2bb00d7f8e84289afd609374373a1c3",
+          "source": "preset-project-bd",
+          "target": "preset-project-be"
+        },
+        {
+          "id": "0c81105e38bc4d848fd983e2e97c9022",
+          "source": "preset-project-be",
+          "target": "preset-project-bf"
+        },
+        {
+          "id": "c006b19959c24251b20f05eac372bf2b",
+          "source": "preset-project-bf",
+          "target": "preset-project-bg"
+        },
+        {
+          "id": "d366efee39ce4dd7994570ebbcdf8406",
+          "source": "preset-project-bg",
+          "target": "preset-project-bh"
+        },
+        {
+          "id": "c101cae10c18411984f3b4c02f5796dd",
+          "source": "preset-project-bh",
+          "target": "preset-project-bi"
+        },
+        {
+          "id": "514fde1c50154505aa24a01f471b6ccd",
+          "source": "preset-project-bj",
+          "target": "preset-project-bk"
+        },
+        {
+          "id": "cbe5d1f910e444579b490bf55c45b45a",
+          "source": "preset-project-bl",
+          "target": "preset-project-bm"
+        },
+        {
+          "id": "2b3bf640395b4568a17fba248d57cdf6",
+          "source": "preset-project-bm",
+          "target": "preset-project-bn"
+        },
+        {
+          "id": "f7ab9eaec6d149bd9e94cfd938fea783",
+          "source": "preset-project-bn",
+          "target": "preset-project-bo"
+        },
+        {
+          "id": "616b526077b14f75a6132be9162280be",
+          "source": "preset-project-bo",
+          "target": "preset-project-bp"
+        },
+        {
+          "id": "09bf90024b7446a3987878c6fe3849c0",
+          "source": "preset-project-bq",
+          "target": "preset-project-br"
+        },
+        {
+          "id": "11e999b3b77240c3956a9e952437a48c",
+          "source": "preset-project-bs",
+          "target": "preset-project-bt"
+        },
+        {
+          "id": "656f8b251a734478a7c32e9e498abd8d",
+          "source": "preset-project-bt",
+          "target": "preset-project-bu"
+        },
+        {
+          "id": "b83696e7e4c04846babca7fd86a59f00",
+          "source": "preset-project-bu",
+          "target": "preset-project-bv"
+        },
+        {
+          "id": "c55d28b102524fc5942752e91791ce21",
+          "source": "preset-project-bw",
+          "target": "preset-project-bx"
+        },
+        {
+          "id": "9e1b7978cdb24bf2a0573befc2e5dd26",
+          "source": "section-preset-project-important-1",
+          "target": "section-preset-project-important-2"
+        },
+        {
+          "id": "15a8483ccdd343749c9a10e7aab97d2a",
+          "source": "section-preset-project-important-2",
+          "target": "section-preset-project-important-3"
+        },
+        {
+          "id": "5d2f68d06ae04cf0a8aebbc3e9864d21",
+          "source": "section-preset-project-important-3",
+          "target": "section-preset-project-important-4"
+        },
+        {
+          "id": "30f85669ee2e43f484df85a8b864159c",
+          "source": "section-preset-project-important-4",
+          "target": "section-preset-project-important-5"
+        },
+        {
+          "id": "2e922953ba9c4130aaff94f0701ae93a",
+          "source": "section-preset-project-important-5",
+          "target": "section-preset-project-important-6"
+        },
+        {
+          "id": "a561584b42a544e79f448b25a4237658",
+          "source": "section-preset-project-important-6",
+          "target": "section-preset-project-important-7"
         }
-      ]
+      ],
+      "folder": "2026项目组·重要级"
+    },
+    {
+      "id": "demo-general",
+      "name": "一般级·示例老师",
+      "teacher": "",
+      "description": "用于体验分级模板、节点说明和历次检查，内容均为演示数据。",
+      "basic_info": {
+        "项目名称": "示例项目",
+        "项目状态": "在研"
+      },
+      "is_demo": true,
+      "created_at": "2026-11-03T09:00:00+08:00",
+      "updated_at": "2026-11-07T10:30:00+08:00",
+      "nodes": [
+        {
+          "id": "preset-project-general-n1",
+          "title": "项目组文件清单",
+          "description": "建议时间：实时更新",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "7.5-1《文件清单》"
+            }
+          ],
+          "archived": false,
+          "records": [
+            {
+              "id": "demo-gen-1-r1",
+              "version": 1,
+              "created_at": "2026-11-07T15:00:00+08:00",
+              "author": "示例老师",
+              "status": "已完成",
+              "note": "示例记录：按一般级要求整理文件清单。",
+              "documents": [
+                {
+                  "template_id": "pg-doc-1",
+                  "name": "7.5-1《文件清单》",
+                  "status": "已完成",
+                  "note": ""
+                }
+              ],
+              "node_title": "",
+              "node_description": ""
+            }
+          ],
+          "parent_id": null,
+          "order_index": 0,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n2",
+          "title": "合同评审（日期在合同签署之前）",
+          "description": "建议时间：项目合同签署前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.2-1《产品和服务要求评审（合同评审）》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 1,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n3",
+          "title": "《质量保证大纲》",
+          "description": "建议时间：项目刚立项时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.1-1《质量保证大纲》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 2,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n4",
+          "title": "《设计开发计划书》",
+          "description": "建议时间：项目刚立项时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.3-2《设计开发计划书》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 3,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n5",
+          "title": "设计开发输入评审",
+          "description": "建议时间：项目刚立项时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.3-3《设计和开发输入评审表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 4,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n6",
+          "title": "设计开发输出评审",
+          "description": "建议时间：项目已立项，开始执行之前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.3-4《设计和开发输出评审记录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 5,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n7",
+          "title": "采购过程（供方评价、外包评审、采购检查、验收）",
+          "description": "建议时间：实时，发生采购活动时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.4-1《供方评价单》"
+            },
+            {
+              "id": "pg-doc-2",
+              "name": "8.4-2《外包评审表》"
+            },
+            {
+              "id": "pg-doc-3",
+              "name": "8.4-3《采购(外包)检查单》"
+            },
+            {
+              "id": "pg-doc-4",
+              "name": "8.4-4《采购（外包）验收报告》"
+            },
+            {
+              "id": "pg-doc-5",
+              "name": "8.4-5《采购（外包）验收准则》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 6,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n8",
+          "title": "项目延期沟通记录",
+          "description": "建议时间：实时，根据项目需要",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "7.4-1《内外部沟通交流记录单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 7,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n9",
+          "title": "测试大纲、测试报告、测试记录",
+          "description": "建议时间：提交甲方测试之前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "0-6《测试报告 测试大纲 测试记录》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 8,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n10",
+          "title": "课题验收申请单（出校检验）",
+          "description": "建议时间：提交甲方验收之前",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.6-1《项目验收申请单（出校检验）》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 9,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n11",
+          "title": "产品交付清单",
+          "description": "建议时间：验收交付时",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.6-2《产品交付清单》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 10,
+          "planned_date": "",
+          "favorite": false
+        },
+        {
+          "id": "preset-project-general-n12",
+          "title": "售后服务计划（如有）",
+          "description": "建议时间：实时，根据项目需要",
+          "category": "项目组管理事项",
+          "x": 60,
+          "y": 70,
+          "templates": [
+            {
+              "id": "pg-doc-1",
+              "name": "8.6-3《售后服务计划落实情况表》"
+            }
+          ],
+          "archived": false,
+          "records": [],
+          "parent_id": null,
+          "order_index": 11,
+          "planned_date": "",
+          "favorite": false
+        }
+      ],
+      "edges": [
+        {
+          "id": "5a894721a5ee449e919ad0940ce70d1a",
+          "source": "preset-project-general-n1",
+          "target": "preset-project-general-n2"
+        },
+        {
+          "id": "5d2fce1531544bea914f32dc3a949f26",
+          "source": "preset-project-general-n2",
+          "target": "preset-project-general-n3"
+        },
+        {
+          "id": "c1d4a769f72443e18aa49b58cb010429",
+          "source": "preset-project-general-n3",
+          "target": "preset-project-general-n4"
+        },
+        {
+          "id": "59bb78e2927141cf8cb3843c3411b684",
+          "source": "preset-project-general-n4",
+          "target": "preset-project-general-n5"
+        },
+        {
+          "id": "5ccfa34de4f244948f6128199b4e46d9",
+          "source": "preset-project-general-n5",
+          "target": "preset-project-general-n6"
+        },
+        {
+          "id": "1806e9afbe1b45748cd3c892ec962864",
+          "source": "preset-project-general-n6",
+          "target": "preset-project-general-n7"
+        },
+        {
+          "id": "5ebce65073b742b5a64d126f1d2055d1",
+          "source": "preset-project-general-n7",
+          "target": "preset-project-general-n8"
+        },
+        {
+          "id": "46a40301cef240f5b2a354e41a852f70",
+          "source": "preset-project-general-n8",
+          "target": "preset-project-general-n9"
+        },
+        {
+          "id": "01bdec5da60a41fca48d6feada7f0928",
+          "source": "preset-project-general-n9",
+          "target": "preset-project-general-n10"
+        },
+        {
+          "id": "3efae57705514ae1a69efcfca50694a1",
+          "source": "preset-project-general-n10",
+          "target": "preset-project-general-n11"
+        },
+        {
+          "id": "5150a3737834444c911d900c9d26eda9",
+          "source": "preset-project-general-n11",
+          "target": "preset-project-general-n12"
+        }
+      ],
+      "folder": "2026项目组·一般级"
+    }
+  ],
+  "folders": [
+    {
+      "id": "folder-2026-important",
+      "name": "2026项目组·重要级",
+      "order_index": 0,
+      "created_at": "2026-11-03T09:00:00+08:00"
+    },
+    {
+      "id": "folder-2026-general",
+      "name": "2026项目组·一般级",
+      "order_index": 1,
+      "created_at": "2026-11-03T09:00:00+08:00"
+    },
+    {
+      "id": "folder-2026-school",
+      "name": "2026全校管理",
+      "order_index": 2,
+      "created_at": "2026-11-03T09:00:00+08:00"
     }
   ]
 }

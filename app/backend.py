@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 STATUSES = ("未开始", "进行中", "待检查", "需修改", "已完成", "不涉及")
-SCHEMA_VERSION = "6"
+SCHEMA_VERSION = "7"
 MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
 
@@ -172,17 +172,23 @@ class Store:
         with self.db:
             self._drop_legacy_triggers(self.db)
         existing = self.db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-        if existing and existing[0] not in ("1", "2", "3", "4", "5", SCHEMA_VERSION):
+        previous = existing[0] if existing else None
+        if existing and existing[0] not in ("1", "2", "3", "4", "5", "6", SCHEMA_VERSION):
             self.db.close()
             raise AppError("数据库版本与当前程序不兼容。", 409)
-        if existing and existing[0] in ("1", "2", "3", "4", "5"):
+        if existing and existing[0] in ("1", "2", "3", "4", "5", "6"):
             self._save_automatic_backup("升级前")
         self._migrate_database(self.db)
         preset_file = Path(presets_path) if presets_path else Path(__file__).resolve().parent / "presets.json"
+        preset = json.loads(preset_file.read_text(encoding="utf-8")) if preset_file.is_file() else None
         seeded = self.db.execute("SELECT value FROM metadata WHERE key='initialized'").fetchone()
-        if not seeded and preset_file.is_file():
+        if seeded and previous != SCHEMA_VERSION and preset:
+            # 旧库升级：补齐新增的内置分级模板；内置模板改过名的，跟着改名。
             with self.db:
-                self._seed(json.loads(preset_file.read_text(encoding="utf-8")))
+                self._ensure_builtin_templates(preset)
+        if not seeded and preset:
+            with self.db:
+                self._seed(preset)
                 self.db.execute("INSERT INTO metadata VALUES ('initialized','1')")
 
     def _connect(self):
@@ -206,7 +212,7 @@ class Store:
     def _migrate_database(db):
         version_row = db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         version = version_row[0] if version_row else "1"
-        if version not in ("1", "2", "3", "4", "5", SCHEMA_VERSION):
+        if version not in ("1", "2", "3", "4", "5", "6", SCHEMA_VERSION):
             raise AppError("数据库版本与当前程序不兼容。", 409)
         if version == SCHEMA_VERSION:
             return
@@ -247,8 +253,8 @@ class Store:
     @staticmethod
     def _migrate_records_to_days(db):
         """把旧记录整理成“每个节点每天一条”，并允许当天记录被再次保存覆盖。"""
-        db.execute("DROP TRIGGER IF EXISTS immutable_record_update")
-        db.execute("DROP TRIGGER IF EXISTS immutable_record_delete")
+        for trigger in ("immutable_record_update", "immutable_record_delete", "record_update_guard", "record_delete_guard"):
+            db.execute(f"DROP TRIGGER IF EXISTS {trigger}")
         columns = {row[1] for row in db.execute("PRAGMA table_info(records)")}
         if "day" not in columns:
             db.execute("ALTER TABLE records ADD COLUMN day TEXT")
@@ -289,17 +295,44 @@ class Store:
         target.write_bytes(self.backup_bytes())
         return target
 
+    RENAMED_TEMPLATES = {"重要级 · 项目组": "项目组管理 · 重要级", "重要级 · 学院": "学院管理 · 重要级"}
+
+    def _ensure_builtin_templates(self, preset):
+        for entry in preset.get("templates", []):
+            name = text(entry["name"], "分级模板名称", True, 200)
+            found = self.db.execute("SELECT id FROM templates WHERE name=?", (name,)).fetchone()
+            if not found:
+                old_name = self.RENAMED_TEMPLATES.get(name)
+                renamed = self.db.execute("SELECT id FROM templates WHERE name=?", (old_name,)).fetchone() if old_name else None
+                if renamed:
+                    self.db.execute("UPDATE templates SET name=? WHERE id=?", (name, renamed[0]))
+                    found = renamed
+            if found:
+                continue
+            nodes, edges = self._validate_flow(entry.get("nodes", []), entry.get("edges", []))
+            self.db.execute("INSERT INTO templates VALUES (?,?,?,?,?,1)",
+                            (entry.get("id") or new_id(), name,
+                             text(entry.get("description", ""), "分级模板说明"), encode(nodes), encode(edges)))
+
     def _seed(self, preset):
+        folder_ids = {}
+        for entry in preset.get("folders", []):
+            fid = entry.get("id") or new_id()
+            self.db.execute("INSERT OR IGNORE INTO folders (id,name,order_index,created_at) VALUES (?,?,?,?)",
+                            (fid, text(entry["name"], "文件夹名称", True, 200),
+                             sequence_index(entry.get("order_index", 0)), entry.get("created_at", now())))
+            folder_ids[entry["name"]] = fid
         for entry in preset.get("templates", []):
             nodes, edges = self._validate_flow(entry.get("nodes", []), entry.get("edges", []))
             self.db.execute("INSERT INTO templates VALUES (?,?,?,?,?,1)",
-                            (entry.get("id") or new_id(), text(entry["name"], "流程模板名称", True, 200),
-                             text(entry.get("description", ""), "流程模板说明"), encode(nodes), encode(edges)))
+                            (entry.get("id") or new_id(), text(entry["name"], "分级模板名称", True, 200),
+                             text(entry.get("description", ""), "分级模板说明"), encode(nodes), encode(edges)))
         for entry in preset.get("demo_groups", []):
             gid = entry.get("id") or new_id()
-            self.db.execute("INSERT INTO groups (id,name,teacher,description,basic_info,is_demo,created_at,updated_at,folder_id) VALUES (?,?,?,?,?,1,?,?,NULL)", (
+            self.db.execute("INSERT INTO groups (id,name,teacher,description,basic_info,is_demo,created_at,updated_at,folder_id) VALUES (?,?,?,?,?,1,?,?,?)", (
                 gid, entry["name"], entry.get("teacher", ""), entry.get("description", ""),
-                encode(entry.get("basic_info", {})), entry.get("created_at", now()), entry.get("updated_at", now())))
+                encode(entry.get("basic_info", {})), entry.get("created_at", now()), entry.get("updated_at", now()),
+                folder_ids.get(entry.get("folder"))))
             nodes, edges = self._validate_flow(entry.get("nodes", []), entry.get("edges", []))
             originals = {n.get("id"): n for n in entry.get("nodes", [])}
             for node in nodes:
@@ -313,7 +346,7 @@ class Store:
 
     def _validate_flow(self, nodes, edges):
         if not isinstance(nodes, list) or len(nodes) > 500:
-            raise AppError("每套流程最多包含 500 个节点。")
+            raise AppError("每套分级模板最多包含 500 个节点。")
         if not isinstance(edges, list) or len(edges) > 2000:
             raise AppError("流程连接数量超出范围。")
         result, ids = [], set()
@@ -371,7 +404,7 @@ class Store:
             while current.get("parent_id") is not None:
                 parent_id = current["parent_id"]
                 if parent_id not in by_id:
-                    raise AppError("父节点需要属于同一个项目组或流程模板。")
+                    raise AppError("父节点需要属于同一个项目组或分级模板。")
                 if parent_id in seen:
                     raise AppError("节点不能放入自身或自己的子流程中。")
                 seen.add(parent_id)
@@ -694,10 +727,10 @@ class Store:
         template_id = data.get("template_id")
         if template_id:
             if not isinstance(template_id, str):
-                raise AppError("流程模板编号格式不正确。")
+                raise AppError("分级模板编号格式不正确。")
             template = self.db.execute("SELECT * FROM templates WHERE id=?", (template_id,)).fetchone()
             if template is None:
-                raise AppError("找不到选择的流程模板。", 404)
+                raise AppError("找不到选择的分级模板。", 404)
             nodes, edges = json.loads(template["nodes"]), json.loads(template["edges"])
             mapping = {node["id"]: new_id() for node in nodes}
             for node in nodes:
@@ -768,8 +801,8 @@ class Store:
 
     def _template_mutation(self, method, parts, data):
         if method == "POST" and len(parts) == 1:
-            name = text(data.get("name", ""), "流程模板名称", True, 200)
-            description = text(data.get("description", ""), "流程模板说明")
+            name = text(data.get("name", ""), "分级模板名称", True, 200)
+            description = text(data.get("description", ""), "分级模板说明")
             if data.get("group_id"):
                 group = self._get_group(data["group_id"])
                 nodes = [n for n in group["nodes"] if not n["archived"]]
@@ -783,11 +816,11 @@ class Store:
         if method == "PUT" and len(parts) == 2:
             old = self.db.execute("SELECT * FROM templates WHERE id=?", (parts[1],)).fetchone()
             if old is None:
-                raise AppError("找不到这个流程模板。", 404)
+                raise AppError("找不到这个分级模板。", 404)
             nodes, edges = self._validate_flow(data.get("nodes", json.loads(old["nodes"])), data.get("edges", json.loads(old["edges"])))
             self.db.execute("UPDATE templates SET name=?,description=?,nodes=?,edges=? WHERE id=?", (
-                text(data.get("name", old["name"]), "流程模板名称", True, 200),
-                text(data.get("description", old["description"]), "流程模板说明"), encode(nodes), encode(edges), parts[1]))
+                text(data.get("name", old["name"]), "分级模板名称", True, 200),
+                text(data.get("description", old["description"]), "分级模板说明"), encode(nodes), encode(edges), parts[1]))
             return
         raise AppError("没有找到这个操作。", 404)
 
@@ -814,7 +847,7 @@ class Store:
                 if candidate.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise AppError("备份文件不完整，无法恢复。")
                 version_row = candidate.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", SCHEMA_VERSION):
+                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", "6", SCHEMA_VERSION):
                     raise AppError("这个备份的版本与当前程序不兼容。")
                 candidate.execute("PRAGMA query_only=OFF")
                 self._drop_legacy_triggers(candidate)
