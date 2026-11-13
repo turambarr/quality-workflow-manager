@@ -245,3 +245,74 @@ textarea.input.notify-text{margin-top:2px;min-height:300px;max-height:52vh;resiz
 .stage-value{text-align:right;font-variant-numeric:tabular-nums}
 .stage-pct{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 @media(max-width:760px){.stage-row{grid-template-columns:110px minmax(0,1fr) 54px 40px;gap:8px}}
+/* 全流程总览 */
+.overview-view{padding:24px 30px 60px;max-width:1240px;margin:0 auto}
+.ov-head{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:20px}
+.ov-title h2{margin:0 0 6px;font-size:24px}
+.ov-title p{margin:0;color:var(--muted);font-size:12.5px}
+.ov-meter{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+.ov-meter b{color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums}
+.ov-stage-meter b{font-variant-numeric:tabular-nums}
+.meter{display:inline-block;width:150px;height:6px;border-radius:3px;background:#eae4d8;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--green)}
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;align-items:start}
+.ov-stage{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.ov-stage-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;background:#f7f3ea;border-bottom:1px solid var(--line)}
+.ov-stage-title{display:flex;align-items:center;gap:8px;min-width:0}
+.ov-stage-no{font-size:11px;color:var(--muted);letter-spacing:.08em}
+.ov-stage-title h3{margin:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-stage-sub{flex:none;font-size:11px;color:var(--muted)}
+.ov-stage-meter{display:flex;align-items:center;gap:8px;flex:none;font-size:11px;color:var(--muted)}
+.ov-stage-meter .meter{width:60px;height:5px}
+.ov-rows{list-style:none;margin:0;padding:4px 6px 8px}
+.ov-row{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;border-radius:8px;background:none;color:inherit;text-align:left;cursor:pointer}
+.ov-row:hover{background:#f7f3ea}
+.ov-row-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.ov-name{font-size:12.5px;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ov-sub{font-size:10.5px;color:var(--muted)}
+.ov-dots{display:flex;flex:none;align-items:center;gap:3px}
+.ov-dot{width:7px;height:7px;border-radius:50%;background:#e0dacd}
+.ov-dot.s-已完成{background:#5d7c62}
+.ov-dot.s-待检查{background:#c39a4e}
+.ov-dot.s-需修改{background:#b5563d}
+.ov-dot.s-进行中{background:#6b8399}
+.ov-dot.s-不涉及{background:#c9c3b4}
+.ov-dot-more{font-size:10px;color:var(--muted)}
+.ov-pill{flex:none;padding:2px 8px;border-radius:999px;font-size:11px}
+.ov-pill.status-已完成{background:var(--green-soft);color:var(--green)}
+.ov-pill.status-进行中{background:var(--blue-soft);color:var(--blue)}
+.ov-pill.status-待检查{background:var(--amber-soft);color:var(--amber)}
+.ov-pill.status-需修改{background:#f8e8e2;color:#a35140}
+.ov-pill.status-不涉及{background:#f1eee7;color:#77756f}
+.ov-pill.status-未开始{background:#f4f1ea;color:#8a8577}
+.ov-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.ov-tile{display:flex;flex-direction:column;gap:7px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:inherit;text-align:left;cursor:pointer}
+.ov-tile:hover{border-color:#d9cfba;box-shadow:0 2px 10px rgba(60,50,35,.06)}
+.ov-tile-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.ov-tile-meta{font-size:10.5px;color:var(--muted)}
+/* 过程目录筛选 */
+.directory-filter{display:flex;gap:6px;padding:0 8px 8px;overflow-x:auto;scrollbar-width:none}
+.directory-filter::-webkit-scrollbar{display:none}
+.filter-chip{flex:none;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-size:11px;cursor:pointer}
+.filter-chip span{font-size:10px;color:#a39a88;font-variant-numeric:tabular-nums}
+.filter-chip.is-on{background:var(--accent-soft);border-color:#dcc7b8;color:var(--accent-dark)}
+.filter-chip.is-on span{color:var(--accent-dark)}
+@media(max-width:760px){
+  .overview-view{padding:16px 14px 48px}
+  .ov-grid{grid-template-columns:1fr}
+  .ov-head{gap:12px}
+  .ov-meter{margin-left:0;width:100%}
+  .meter{flex:1;width:auto}
+}
+.overview-view{width:100%;flex:1 1 auto}
+.directory-filter{padding:0 8px 8px}
+.filter-select{display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted)}
+.filter-select .icon{width:13px;height:13px;flex:none}
+.filter-select select{flex:1;min-width:0;border:0;background:none;font-size:11.5px;color:var(--ink);outline:none;cursor:pointer}
+.filter-select{padding:0 10px 0 4px}
+.filter-select select{padding-left:6px}
+.ov-row.is-flash{background:var(--accent-soft);transition:background .4s}
+.ov-index{flex:none;width:22px;font-size:10.5px;color:#b0a795;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.ov-tile .ov-index{width:auto;margin-right:2px}
+.ov-tile{padding:10px 12px}
+.project-main>.topbar,.project-main>.modebar,.project-main>.workspace-titlebar{flex:0 0 auto}

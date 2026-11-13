@@ -43,7 +43,7 @@ const statusPill = value => `<span class="pill status-${esc(value)}">${esc(value
 const button = (action, label, glyph, cls='', attrs='') => `<button type="button" class="btn ${cls}" data-action="${action}" ${attrs}>${glyph ? icon(glyph) : ''}${label}</button>`;
 const iconButton = (action, label, glyph, attrs='') => `<button type="button" class="icon-btn" data-action="${action}" aria-label="${esc(label)}" title="${esc(label)}" ${attrs}>${icon(glyph)}</button>`;
 let state = {groups:[],templates:[]};
-let ui = {view:'groups',groupId:null,templateId:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',zoom:1,panX:45,panY:45,dirty:false};
+let ui = {view:'groups',groupId:null,templateId:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',statusFilter:'',zoom:1,panX:45,panY:45,dirty:false};
 let busy = false, toastTimer, dragState = null, suppressClick = false, modalOrigin = null, lastRenderedNode = null;
 let actor = '';
 try { actor = localStorage.getItem('quality-author') || ''; } catch (_) {}
@@ -77,7 +77,7 @@ async function mutate(path, body={}, method='POST'){
   finally {busy=false;}
 }
 function mayLeave(){if(!ui.dirty)return true;if(!window.confirm('本次填写尚未保存。是否放弃这些内容？'))return false;delete recordDrafts[ui.nodeId];ui.dirty=false;return true;}
-function navigate(view, id){if(!mayLeave())return;ui={...ui,view,groupId:view==='group'?id:null,templateId:view==='template'?id:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',dirty:false,mode:view==='template'?'graph':'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',zoom:1,panX:35,panY:50};if(view==='group')ui.nodeId=orderedNodes(group())[0]?.id||null;render();}
+function navigate(view, id){if(!mayLeave())return;ui={...ui,view,groupId:view==='group'?id:null,templateId:view==='template'?id:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',dirty:false,mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',statusFilter:'',zoom:1,panX:35,panY:50};if(view==='group')ui.nodeId=orderedNodes(group())[0]?.id||null;render();}
 function crumbTrail(current){
   if(ui.view==='group'){
     const folder=current?folderName(current.folder_id):'';
@@ -325,7 +325,7 @@ document.addEventListener('click',async event=>{
 });
 async function addNode(data){if(isTemplate()){const t=clone(flow());const id=uid();t.nodes.push({id,...data,records:[],archived:false});await mutate(`/templates/${encodeURIComponent(t.id)}`,t,'PUT');ui.nodeId=id;}else{const before=new Set(flow().nodes.map(n=>n.id));await mutate(`/groups/${encodeURIComponent(ui.groupId)}/nodes`,data);ui.nodeId=flow().nodes.find(n=>!before.has(n.id))?.id;}ui.tab='overview';}
 document.addEventListener('input',event=>{if(event.target.id==='group-search'){ui.search=event.target.value;$('#group-grid').innerHTML=folderSections();}if(event.target.closest('#record-form')){ui.dirty=true;captureDraft();}if(event.target.closest('#modal-form'))$('#modal-root').dataset.dirty='true';});
-document.addEventListener('change',event=>{if(event.target.id==='notify-template'){const t=state.templates.find(x=>x.id===event.target.value);fillNotifyPicker(t,notifyDefaultKeys(t));return;}if(event.target.closest('#notify-picker')){const box=event.target;if(box.dataset.node){$$('#notify-picker input[data-doc]').filter(d=>d.dataset.doc.startsWith(box.dataset.node+'|')).forEach(d=>d.checked=box.checked);}syncNotifyNodes();refreshNotify();return;}if(event.target.closest('#record-form')){ui.dirty=true;captureDraft();}if(event.target.closest('#modal-form'))$('#modal-root').dataset.dirty='true';});
+document.addEventListener('change',event=>{if(event.target.id==='status-filter'){ui.statusFilter=event.target.value;const box=$('#directory-items');if(box)box.innerHTML=renderDirectory(flow());return;}if(event.target.id==='notify-template'){const t=state.templates.find(x=>x.id===event.target.value);fillNotifyPicker(t,notifyDefaultKeys(t));return;}if(event.target.closest('#notify-picker')){const box=event.target;if(box.dataset.node){$$('#notify-picker input[data-doc]').filter(d=>d.dataset.doc.startsWith(box.dataset.node+'|')).forEach(d=>d.checked=box.checked);}syncNotifyNodes();refreshNotify();return;}if(event.target.closest('#record-form')){ui.dirty=true;captureDraft();}if(event.target.closest('#modal-form'))$('#modal-root').dataset.dirty='true';});
 document.addEventListener('submit',async event=>{
   const form=event.target;if(!['record-form','modal-form','edge-form'].includes(form.id))return;event.preventDefault();const submit=form.querySelector('[type=submit]')||document.querySelector(`[form="${form.id}"]`);if(submit)submit.disabled=true;
   const values=Object.fromEntries(new FormData(form));
@@ -374,7 +374,7 @@ document.addEventListener('change',async event=>{
   try{if(busy)throw new Error('正在保存，请稍后恢复。');busy=true;const response=await fetch('/api/restore',{method:'POST',headers:{'Content-Type':'application/octet-stream','X-App-Token':state.csrf_token},body:file});const data=await response.json();if(!response.ok)throw new Error(data.error||'恢复未完成，请确认备份文件有效。');state=data.state||data;ui.nodeId=null;ui.groupId=null;ui.templateId=null;render();toast('数据已恢复');}catch(error){toast(error.message);}finally{busy=false;event.target.value='';}
 });
 document.addEventListener('keydown',event=>{
-  const modal=$('.modal');if(event.key==='Escape'){if(modal)closeModal();else if(ui.mode==='work'&&mayLeave()){ui.mode='graph';ui.dirty=false;render();}}
+  const modal=$('.modal');if(event.key==='Escape'){if(modal)closeModal();else if(ui.mode==='work'&&mayLeave()){ui.mode='overview';ui.dirty=false;render();}}
   if(event.key==='Tab'&&modal){const focusable=$$('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]',modal).filter(el=>el.getClientRects().length);const first=focusable[0],last=focusable.at(-1);if(!modal.contains(document.activeElement)){event.preventDefault();first?.focus();}else if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
 });
 window.addEventListener('beforeunload',event=>{if(ui.dirty||$('#modal-root').dataset.dirty==='true'){event.preventDefault();event.returnValue='';}});
