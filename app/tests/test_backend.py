@@ -521,6 +521,21 @@ def create_legacy_database(folder):
 
 
 class MigrationTest(unittest.TestCase):
+    def test_existing_database_gets_builtin_folders_and_templates(self):
+        with tempfile.TemporaryDirectory() as folder:
+            create_legacy_database(folder)
+            store = Store(folder)
+            try:
+                state = store.state()
+                names = [f["name"] for f in state["folders"]]
+                for expected in ("2026项目组·重要级", "2026项目组·一般级", "2026全校管理"):
+                    self.assertIn(expected, names)
+                self.assertEqual(state["groups"][0]["folder_id"], None)
+                template_names = [t["name"] for t in state["templates"]]
+                self.assertIn("全校 · 科研院", template_names)
+            finally:
+                store.close()
+
     def test_existing_database_upgrade_preserves_groups_and_history(self):
         with tempfile.TemporaryDirectory() as folder:
             path, snapshot = create_legacy_database(folder)

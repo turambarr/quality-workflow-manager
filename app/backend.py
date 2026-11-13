@@ -185,6 +185,7 @@ class Store:
         if seeded and previous != SCHEMA_VERSION and preset:
             # 旧库升级：补齐新增的内置分级模板；内置模板改过名的，跟着改名。
             with self.db:
+                self._ensure_builtin_folders(preset)
                 self._ensure_builtin_templates(preset)
         if not seeded and preset:
             with self.db:
@@ -296,6 +297,14 @@ class Store:
         return target
 
     RENAMED_TEMPLATES = {"重要级 · 项目组": "项目组管理 · 重要级", "重要级 · 学院": "学院管理 · 重要级"}
+
+    def _ensure_builtin_folders(self, preset):
+        for index, folder in enumerate(preset.get("folders", [])):
+            name = folder.get("name")
+            if not name or self.db.execute("SELECT 1 FROM folders WHERE name=?", (name,)).fetchone():
+                continue
+            self.db.execute("INSERT INTO folders (id,name,order_index,created_at) VALUES (?,?,?,?)",
+                            (folder.get("id") or new_id(), name, index, now()))
 
     def _ensure_builtin_templates(self, preset):
         for entry in preset.get("templates", []):
