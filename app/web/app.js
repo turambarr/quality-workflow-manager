@@ -78,17 +78,13 @@ async function mutate(path, body={}, method='POST'){
   finally {busy=false;}
 }
 function mayLeave(){if(!ui.dirty)return true;if(!window.confirm('本次填写尚未保存。是否放弃这些内容？'))return false;delete recordDrafts[ui.nodeId];ui.dirty=false;return true;}
-const SIDE_FOLDERS_KEY='quality-side-folders',RECENT_KEY='quality-recent-groups';
+const SIDE_FOLDERS_KEY='quality-side-folders';
 function sideFolders(){try{const v=JSON.parse(localStorage.getItem(SIDE_FOLDERS_KEY)||'[]');return Array.isArray(v)?v:[]}catch(error){return []}}
 function saveSideFolders(list){try{localStorage.setItem(SIDE_FOLDERS_KEY,JSON.stringify(list))}catch(error){}}
 function revealFolder(folderId){if(!folderId)return;const key='f:'+folderId,list=sideFolders();if(list.includes(key))return;saveSideFolders([...list,key]);}
 const SIDE_COLLAPSE_KEY='quality-sidebar-collapsed';
 function sidebarCollapsed(){try{return localStorage.getItem(SIDE_COLLAPSE_KEY)==='1'}catch(error){return false}}
 function toggleSidebar(){try{localStorage.setItem(SIDE_COLLAPSE_KEY,sidebarCollapsed()?'0':'1')}catch(error){}render();}
-function readRecentRaw(){try{const raw=JSON.parse(localStorage.getItem(RECENT_KEY)||'[]');if(!Array.isArray(raw))return [];return raw.map(item=>typeof item==='string'?{id:item,at:0}:item).filter(item=>item&&item.id)}catch(error){return []}}
-function rememberGroup(id){try{const next=[{id,at:Date.now()},...readRecentRaw().filter(item=>item.id!==id)].slice(0,10);localStorage.setItem(RECENT_KEY,JSON.stringify(next))}catch(error){}}
-function recentEntries(){return readRecentRaw().map(item=>({g:state.groups.find(g=>g.id===item.id&&!g.archived),at:item.at||0})).filter(item=>item.g)}
-function recentBucket(at){if(!at)return '更早';const now=new Date();const start=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();const day=new Date(at);const dayStart=new Date(day.getFullYear(),day.getMonth(),day.getDate()).getTime();const diff=Math.round((start-dayStart)/86400000);if(diff<=0)return '今天';if(diff===1)return '昨天';if(diff<7)return '近 7 天';return '更早';}
 function treeUnit(g){return `<button class="tree-unit ${g.id===ui.groupId?'active':''}" data-action="open-group" data-id="${esc(g.id)}">${esc(g.name)}</button>`;}
 function folderTreeHtml(){
   const open=new Set(sideFolders()),groups=state.groups.filter(g=>!g.archived),folders=state.folders||[],unfiled=groups.filter(g=>!g.folder_id);
@@ -99,15 +95,7 @@ function folderTreeHtml(){
   const unfiledRow=unfiled.length?`<div class="tree-group"><button class="tree-folder ${open.has('u')?'is-open':''}" data-action="side-folder" data-key="u" aria-expanded="${open.has('u')}"><span class="tree-caret">${icon('chevron')}</span><span class="tree-name">未分类</span><span class="tree-count">${unfiled.length}</span></button>${open.has('u')?`<div class="tree-units">${unfiled.map(treeUnit).join('')}</div>`:''}</div>`:'';
   return `<div class="side-section side-scroll"><div class="nav-label">文件夹</div><div class="folder-tree">${rows}${unfiledRow}</div></div>`;
 }
-function recentHtml(){
-  const entries=recentEntries();
-  if(!entries.length)return '';
-  const buckets=new Map();
-  entries.forEach(item=>{const key=recentBucket(item.at);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(item.g)});
-  const blocks=['今天','昨天','近 7 天','更早'].filter(key=>buckets.has(key)).map(key=>`<div class="recent-block"><div class="recent-day">${key}</div>${buckets.get(key).map(g=>`<div class="recent-row"><button class="recent-group ${g.id===ui.groupId?'active':''}" data-action="open-group" data-id="${esc(g.id)}" title="${esc(g.name)}"><span>${esc(g.name)}</span></button>${groupMenuButton(g,'recent-more')}</div>`).join('')}</div>`).join('');
-  return `<div class="side-section"><div class="nav-label">最近</div><div class="recent-list">${blocks}</div></div>`;
-}
-function navigate(view, id){if(!mayLeave())return;ui={...ui,view,groupId:view==='group'?id:null,templateId:view==='template'?id:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',dirty:false,mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',statusFilter:'',zoom:1,panX:35,panY:50};if(view==='group'){ui.nodeId=orderedNodes(group())[0]?.id||null;rememberGroup(id);revealFolder(group()?.folder_id);}render();}
+function navigate(view, id){if(!mayLeave())return;ui={...ui,view,groupId:view==='group'?id:null,templateId:view==='template'?id:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',dirty:false,mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',statusFilter:'',zoom:1,panX:35,panY:50};if(view==='group'){ui.nodeId=orderedNodes(group())[0]?.id||null;revealFolder(group()?.folder_id);}render();}
 function crumbTrail(current){
   if(ui.view==='group'){
     const folder=current?folderName(current.folder_id):'';
@@ -134,7 +122,6 @@ function render(){
       <div class="brand"><div class="brand-mark"><svg viewBox="0 0 32 38" fill="none" aria-hidden="true"><path d="M8 3h13l6 6v26H8z" stroke="currentColor" stroke-width="1.5"/><path d="M21 3v7h6M3 9v26h18M13 17h9M13 23h9M13 29h5" stroke="currentColor" stroke-width="1.5"/></svg></div><div class="brand-text"><div class="brand-name">GJB9001项目质量过程管理</div><div class="brand-sub">流程 · 材料 · 记录</div></div><button class="sidebar-toggle" data-action="toggle-sidebar" aria-label="${collapsed?'展开侧栏':'收起侧栏'}" title="${collapsed?'展开侧栏':'收起侧栏'}">${icon('panel')}</button></div>
       <nav><div class="nav-label">工作空间</div><button class="nav-item ${['groups','group'].includes(ui.view)?'active':''}" data-action="groups" title="项目组">${icon('grid')}<span class="nav-text">项目组</span><span class="nav-count">${state.groups.filter(g=>!g.archived).length}</span></button><button class="nav-item ${['templates','template'].includes(ui.view)?'active':''}" data-action="templates" title="分级模板">${icon('flow')}<span class="nav-text">分级模板</span><span class="nav-count">${state.templates.length}</span></button><button class="nav-item ${ui.view==='favorites'?'active':''}" data-action="favorites" title="收藏夹">${icon('star')}<span class="nav-text">收藏夹</span></button><button class="nav-item" data-action="notify" title="生成通知">${icon('bell')}<span class="nav-text">生成通知</span></button></nav>
       ${folderTreeHtml()}
-      ${recentHtml()}
       <div class="sidebar-bottom"><button class="nav-item ${ui.view==='backup'?'active':''}" data-action="backup" title="数据与备份">${icon('save')}<span class="nav-text">数据与备份</span></button><div class="local-note"><span class="dot"></span>记录保存在本机</div></div>
       <div class="sidebar-resize" id="sidebar-resize" role="separator" aria-orientation="vertical" aria-label="拖动调整侧栏宽度" title="拖动调整侧栏宽度，双击复位"></div>
     </aside>
