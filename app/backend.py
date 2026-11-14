@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 STATUSES = ("未开始", "进行中", "待检查", "需修改", "已完成", "不涉及")
-SCHEMA_VERSION = "8"
+SCHEMA_VERSION = "9"
 MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
 
@@ -173,10 +173,10 @@ class Store:
             self._drop_legacy_triggers(self.db)
         existing = self.db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         previous = existing[0] if existing else None
-        if existing and existing[0] not in ("1", "2", "3", "4", "5", "6", "7", SCHEMA_VERSION):
+        if existing and existing[0] not in ("1", "2", "3", "4", "5", "6", "7", "8", SCHEMA_VERSION):
             self.db.close()
             raise AppError("数据库版本与当前程序不兼容。", 409)
-        if existing and existing[0] in ("1", "2", "3", "4", "5", "6", "7"):
+        if existing and existing[0] in ("1", "2", "3", "4", "5", "6", "7", "8"):
             self._save_automatic_backup("升级前")
         self._migrate_database(self.db)
         preset_file = Path(presets_path) if presets_path else Path(__file__).resolve().parent / "presets.json"
@@ -187,6 +187,7 @@ class Store:
             with self.db:
                 self._ensure_builtin_folders(preset)
                 self._ensure_builtin_templates(preset)
+                self._ensure_builtin_groups(preset)
         if not seeded and preset:
             with self.db:
                 self._seed(preset)
@@ -213,7 +214,7 @@ class Store:
     def _migrate_database(db):
         version_row = db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         version = version_row[0] if version_row else "1"
-        if version not in ("1", "2", "3", "4", "5", "6", "7", SCHEMA_VERSION):
+        if version not in ("1", "2", "3", "4", "5", "6", "7", "8", SCHEMA_VERSION):
             raise AppError("数据库版本与当前程序不兼容。", 409)
         if version == SCHEMA_VERSION:
             return
@@ -331,6 +332,41 @@ class Store:
                             (entry.get("id") or new_id(), name,
                              text(entry.get("description", ""), "分级模板说明"), encode(nodes), encode(edges)))
 
+    def _ensure_builtin_groups(self, preset):
+        """为旧库补建预设中标记为 onboard 的示例单元（按名称判重，不覆盖已有数据）。"""
+        for entry in preset.get("demo_groups", []):
+            if not entry.get("onboard"):
+                continue
+            name = text(entry.get("name", ""), "项目组名称", True, 200)
+            if self.db.execute("SELECT 1 FROM groups WHERE name=?", (name,)).fetchone():
+                continue
+            folder = self.db.execute("SELECT id FROM folders WHERE name=?", (entry.get("folder", ""),)).fetchone()
+            gid, stamp = new_id(), now()
+            self.db.execute("INSERT INTO groups (id,name,teacher,description,basic_info,is_demo,created_at,updated_at,folder_id) VALUES (?,?,?,?,?,?,?,?,?)", (
+                gid, name, entry.get("teacher", ""), text(entry.get("description", ""), "项目组说明"),
+                encode(entry.get("basic_info", {})), 0 if entry.get("onboard") else 1, stamp, stamp,
+                folder["id"] if folder else None))
+            if entry.get("template"):
+                self._clone_template_nodes(gid, entry["template"])
+
+    def _clone_template_nodes(self, gid, template_id):
+        template = self.db.execute("SELECT nodes, edges FROM templates WHERE id=?", (template_id,)).fetchone()
+        if template is None:
+            raise AppError("找不到选择的分级模板。", 404)
+        nodes, edges = json.loads(template["nodes"]), json.loads(template["edges"])
+        mapping = {node["id"]: new_id() for node in nodes}
+        for node in nodes:
+            value = copy.deepcopy(node)
+            value["id"] = mapping[node["id"]]
+            value["archived"] = False
+            value["parent_id"] = mapping.get(node.get("parent_id"))
+            value["favorite"] = False
+            for doc in value["templates"]:
+                doc["id"] = new_id()
+            self._insert_node(gid, value)
+        for edge in edges:
+            self.db.execute("INSERT INTO edges VALUES (?,?,?,?)", (new_id(), gid, mapping[edge["source"]], mapping[edge["target"]]))
+
     def _seed(self, preset):
         folder_ids = {}
         for entry in preset.get("folders", []):
@@ -346,10 +382,14 @@ class Store:
                              text(entry.get("description", ""), "分级模板说明"), encode(nodes), encode(edges)))
         for entry in preset.get("demo_groups", []):
             gid = entry.get("id") or new_id()
-            self.db.execute("INSERT INTO groups (id,name,teacher,description,basic_info,is_demo,created_at,updated_at,folder_id) VALUES (?,?,?,?,?,1,?,?,?)", (
+            self.db.execute("INSERT INTO groups (id,name,teacher,description,basic_info,is_demo,created_at,updated_at,folder_id) VALUES (?,?,?,?,?,?,?,?,?)", (
                 gid, entry["name"], entry.get("teacher", ""), entry.get("description", ""),
-                encode(entry.get("basic_info", {})), entry.get("created_at", now()), entry.get("updated_at", now()),
+                encode(entry.get("basic_info", {})), 0 if entry.get("onboard") else 1,
+                entry.get("created_at", now()), entry.get("updated_at", now()),
                 folder_ids.get(entry.get("folder"))))
+            if entry.get("template") and not entry.get("nodes"):
+                self._clone_template_nodes(gid, entry["template"])
+                continue
             nodes, edges = self._validate_flow(entry.get("nodes", []), entry.get("edges", []))
             originals = {n.get("id"): n for n in entry.get("nodes", [])}
             for node in nodes:
@@ -745,22 +785,7 @@ class Store:
         if template_id:
             if not isinstance(template_id, str):
                 raise AppError("分级模板编号格式不正确。")
-            template = self.db.execute("SELECT * FROM templates WHERE id=?", (template_id,)).fetchone()
-            if template is None:
-                raise AppError("找不到选择的分级模板。", 404)
-            nodes, edges = json.loads(template["nodes"]), json.loads(template["edges"])
-            mapping = {node["id"]: new_id() for node in nodes}
-            for node in nodes:
-                value = copy.deepcopy(node)
-                value["id"] = mapping[node["id"]]
-                value["archived"] = False
-                value["parent_id"] = mapping.get(node.get("parent_id"))
-                value["favorite"] = False
-                for doc in value["templates"]:
-                    doc["id"] = new_id()
-                self._insert_node(gid, value)
-            for edge in edges:
-                self.db.execute("INSERT INTO edges VALUES (?,?,?,?)", (new_id(), gid, mapping[edge["source"]], mapping[edge["target"]]))
+            self._clone_template_nodes(gid, template_id)
 
     def _append_record(self, gid, nid, data, created_at=None):
         node = self._get_node(gid, nid)
@@ -864,7 +889,7 @@ class Store:
                 if candidate.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise AppError("备份文件不完整，无法恢复。")
                 version_row = candidate.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", "6", "7", SCHEMA_VERSION):
+                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", "6", "7", "8", SCHEMA_VERSION):
                     raise AppError("这个备份的版本与当前程序不兼容。")
                 candidate.execute("PRAGMA query_only=OFF")
                 self._drop_legacy_triggers(candidate)

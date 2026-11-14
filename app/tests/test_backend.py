@@ -533,6 +533,11 @@ class MigrationTest(unittest.TestCase):
                 self.assertEqual(state["groups"][0]["folder_id"], None)
                 template_names = [t["name"] for t in state["templates"]]
                 self.assertIn("全校 · 科研院", template_names)
+                school = next(f for f in state["folders"] if f["name"] == "2026全校管理")
+                units = [g for g in state["groups"] if g["folder_id"] == school["id"]]
+                self.assertEqual(len(units), 13)
+                self.assertIn("科研院", [g["name"] for g in units])
+                self.assertTrue(all(len(g["nodes"]) == 49 for g in units))
             finally:
                 store.close()
 
@@ -543,11 +548,12 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "8")
-                self.assertEqual(len(state["groups"]), 1)
-                self.assertEqual(state["groups"][0]["name"], "原老师")
-                self.assertEqual(state["groups"][0]["teacher"], "")
-                node = state["groups"][0]["nodes"][0]
+                self.assertEqual(state["storage"]["schema_version"], "9")
+                original = next(g for g in state["groups"] if g["name"] == "原老师")
+                self.assertEqual(len(state["groups"]), 14)  # 原组 + 13 个全校单元
+                self.assertEqual(original["teacher"], "")
+                self.assertEqual(original["folder_id"], None)
+                node = original["nodes"][0]
                 self.assertEqual(node["records"], [dict(snapshot, day="2026-11-02")])
                 self.assertEqual((node["parent_id"], node["order_index"], node["favorite"], node["planned_date"]), (None, 0, False, None))
                 self.assertEqual(state["templates"][0]["nodes"][0]["parent_id"], None)
@@ -560,8 +566,10 @@ class MigrationTest(unittest.TestCase):
             finally:
                 store.close()
             reopened = Store(folder)
-            self.assertEqual(len(reopened.state()["groups"]), 2)
-            self.assertEqual(reopened.state()["groups"][0]["name"], "原老师")
+            self.assertEqual(len(reopened.state()["groups"]), 15)
+            names = [g["name"] for g in reopened.state()["groups"]]
+            self.assertIn("原老师", names)
+            self.assertIn("升级后创建", names)
             self.assertEqual(len(list((Path(folder) / "backups").glob("升级前-*.sqlite3"))), 1)
             reopened.close()
 
@@ -571,7 +579,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "8")
+                self.assertEqual(state["storage"]["schema_version"], "9")
                 self.assertFalse(state["groups"][0]["archived"])
                 self.assertEqual(state["groups"][0]["folder_id"], "old-folder")
                 self.assertEqual(state["folders"][0]["name"], "旧文件夹")
@@ -587,7 +595,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "8")
+                self.assertEqual(state["storage"]["schema_version"], "9")
                 group = state["groups"][0]
                 self.assertEqual(group["name"], "四老师")
                 self.assertEqual(group["teacher"], "")
@@ -603,7 +611,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "8")
+                self.assertEqual(state["storage"]["schema_version"], "9")
                 records = state["groups"][0]["nodes"][0]["records"]
                 self.assertEqual([r["note"] for r in records], ["下午", "复查"])
                 self.assertEqual([r["day"] for r in records], ["2026-10-03", "2026-10-05"])
@@ -625,7 +633,7 @@ class MigrationTest(unittest.TestCase):
             try:
                 store.restore_bytes(source.read_bytes())
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "8")
+                self.assertEqual(state["storage"]["schema_version"], "9")
                 records = state["groups"][0]["nodes"][0]["records"]
                 self.assertEqual([r["day"] for r in records], ["2026-10-03", "2026-10-05"])
                 self.assertEqual([r["note"] for r in records], ["下午", "复查"])
@@ -667,7 +675,7 @@ class MigrationTest(unittest.TestCase):
                 store.mutate("POST", ["groups"], {"name": "恢复前项目"})
                 before = copy.deepcopy(store.state()["groups"])
                 state = store.restore_bytes(path.read_bytes())
-                self.assertEqual(state["storage"]["schema_version"], "8")
+                self.assertEqual(state["storage"]["schema_version"], "9")
                 self.assertEqual(state["groups"][0]["nodes"][0]["records"], [dict(snapshot, day="2026-11-02")])
                 backups = list((Path(target) / "backups").glob("恢复前-*.sqlite3"))
                 self.assertEqual(len(backups), 1)

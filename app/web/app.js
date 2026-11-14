@@ -77,7 +77,28 @@ async function mutate(path, body={}, method='POST'){
   finally {busy=false;}
 }
 function mayLeave(){if(!ui.dirty)return true;if(!window.confirm('本次填写尚未保存。是否放弃这些内容？'))return false;delete recordDrafts[ui.nodeId];ui.dirty=false;return true;}
-function navigate(view, id){if(!mayLeave())return;ui={...ui,view,groupId:view==='group'?id:null,templateId:view==='template'?id:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',dirty:false,mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',statusFilter:'',zoom:1,panX:35,panY:50};if(view==='group')ui.nodeId=orderedNodes(group())[0]?.id||null;render();}
+const SIDE_FOLDERS_KEY='quality-side-folders',RECENT_KEY='quality-recent-groups';
+function sideFolders(){try{const v=JSON.parse(localStorage.getItem(SIDE_FOLDERS_KEY)||'[]');return Array.isArray(v)?v:[]}catch(error){return []}}
+function saveSideFolders(list){try{localStorage.setItem(SIDE_FOLDERS_KEY,JSON.stringify(list))}catch(error){}}
+function revealFolder(folderId){if(!folderId)return;const key='f:'+folderId,list=sideFolders();if(list.includes(key))return;saveSideFolders([...list,key]);}
+function rememberGroup(id){try{const list=JSON.parse(localStorage.getItem(RECENT_KEY)||'[]');const next=[id,...(Array.isArray(list)?list:[]).filter(x=>x!==id)].slice(0,6);localStorage.setItem(RECENT_KEY,JSON.stringify(next))}catch(error){}}
+function recentGroups(){let ids=[];try{ids=JSON.parse(localStorage.getItem(RECENT_KEY)||'[]')}catch(error){}return (Array.isArray(ids)?ids:[]).map(id=>state.groups.find(g=>g.id===id&&!g.archived)).filter(Boolean).slice(0,6);}
+function treeUnit(g){return `<button class="tree-unit ${g.id===ui.groupId?'active':''}" data-action="open-group" data-id="${esc(g.id)}">${esc(g.name)}</button>`;}
+function folderTreeHtml(){
+  const open=new Set(sideFolders()),groups=state.groups.filter(g=>!g.archived),folders=state.folders||[],unfiled=groups.filter(g=>!g.folder_id);
+  const rows=folders.map(f=>{
+    const list=groups.filter(g=>g.folder_id===f.id),key='f:'+f.id,isOpen=open.has(key),active=list.some(g=>g.id===ui.groupId);
+    return `<div class="tree-group"><button class="tree-folder ${isOpen?'is-open':''} ${active?'has-active':''}" data-action="side-folder" data-key="${esc(key)}" aria-expanded="${isOpen}"><span class="tree-caret">${icon('chevron')}</span><span class="tree-name">${esc(f.name)}</span><span class="tree-count">${list.length||''}</span></button>${isOpen?`<div class="tree-units">${list.length?list.map(treeUnit).join(''):'<div class="tree-empty">还没有单元</div>'}</div>`:''}</div>`;
+  }).join('');
+  const unfiledRow=unfiled.length?`<div class="tree-group"><button class="tree-folder ${open.has('u')?'is-open':''}" data-action="side-folder" data-key="u" aria-expanded="${open.has('u')}"><span class="tree-caret">${icon('chevron')}</span><span class="tree-name">未分类</span><span class="tree-count">${unfiled.length}</span></button>${open.has('u')?`<div class="tree-units">${unfiled.map(treeUnit).join('')}</div>`:''}</div>`:'';
+  return `<div class="side-section side-scroll"><div class="nav-label">文件夹</div><div class="folder-tree">${rows}${unfiledRow}</div></div>`;
+}
+function recentHtml(){
+  const list=recentGroups();
+  if(!list.length)return '';
+  return `<div class="side-section"><div class="nav-label">最近</div><div class="recent-list">${list.map(g=>`<div class="recent-row"><button class="recent-group ${g.id===ui.groupId?'active':''}" data-action="open-group" data-id="${esc(g.id)}"><span>${esc(g.name)}</span></button>${groupMenuButton(g,'recent-more')}</div>`).join('')}</div></div>`;
+}
+function navigate(view, id){if(!mayLeave())return;ui={...ui,view,groupId:view==='group'?id:null,templateId:view==='template'?id:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',dirty:false,mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',statusFilter:'',zoom:1,panX:35,panY:50};if(view==='group'){ui.nodeId=orderedNodes(group())[0]?.id||null;rememberGroup(id);revealFolder(group()?.folder_id);}render();}
 function crumbTrail(current){
   if(ui.view==='group'){
     const folder=current?folderName(current.folder_id):'';
@@ -102,7 +123,8 @@ function render(){
     <aside class="sidebar" aria-label="主导航">
       <div class="brand"><div class="brand-mark"><svg viewBox="0 0 32 38" fill="none" aria-hidden="true"><path d="M8 3h13l6 6v26H8z" stroke="currentColor" stroke-width="1.5"/><path d="M21 3v7h6M3 9v26h18M13 17h9M13 23h9M13 29h5" stroke="currentColor" stroke-width="1.5"/></svg></div><div class="brand-text"><div class="brand-name">GJB9001项目质量过程管理</div><div class="brand-sub">流程 · 材料 · 记录</div></div></div>
       <nav><div class="nav-label">工作空间</div><button class="nav-item ${['groups','group'].includes(ui.view)?'active':''}" data-action="groups">${icon('grid')}项目组<span class="nav-count">${state.groups.filter(g=>!g.archived).length}</span></button><button class="nav-item ${['templates','template'].includes(ui.view)?'active':''}" data-action="templates">${icon('flow')}分级模板<span class="nav-count">${state.templates.length}</span></button><button class="nav-item ${ui.view==='favorites'?'active':''}" data-action="favorites">${icon('star')}收藏夹</button><button class="nav-item" data-action="notify">${icon('bell')}生成通知</button></nav>
-      ${state.groups.filter(g=>!g.archived).length?`<div><div class="nav-label">项目组快捷入口</div><div class="recent-list">${state.groups.filter(g=>!g.archived).slice(0,6).map(g=>`<div class="recent-row"><button class="recent-group ${g.id===ui.groupId?'active':''}" data-action="open-group" data-id="${esc(g.id)}"><span>${esc(g.name)}</span></button>${groupMenuButton(g,'recent-more')}</div>`).join('')}</div></div>`:''}
+      ${folderTreeHtml()}
+      ${recentHtml()}
       <div class="sidebar-bottom"><button class="nav-item ${ui.view==='backup'?'active':''}" data-action="backup">${icon('save')}数据与备份</button><div class="local-note"><span class="dot"></span>记录保存在本机</div></div>
     </aside>
     <main id="main" class="main ${['group','template'].includes(ui.view)?'project-main':''}" tabindex="-1"><div class="topbar"><div class="breadcrumbs"><button class="crumb-root" data-action="groups">工作空间</button>${icon('chevron')}${crumbTrail(current)}</div><div class="topbar-notice">使用过程中请遵守：涉密信息不上网，上网信息不涉密</div><div class="topbar-right">${topbarActions(current)}<nav class="mobile-nav" aria-label="主导航">${iconButton('groups','项目组','grid')}${iconButton('templates','分级模板','flow')}${iconButton('favorites','收藏夹','star')}${iconButton('notify','生成通知','bell')}${iconButton('backup','数据与备份','save')}</nav></div></div>
@@ -119,6 +141,8 @@ function render(){
       else if(row.right>box.right)nextDirectory.scrollLeft+=row.right-box.right+4;}}
   const nextProcess=$('.process-scroll');
   if(nextProcess&&keepProcess)nextProcess.scrollTop=processScroll;
+  const tree=$('.side-scroll'),activeUnit=tree?tree.querySelector('.tree-unit.active'):null;
+  if(tree&&activeUnit){const tb=tree.getBoundingClientRect(),ub=activeUnit.getBoundingClientRect();if(ub.top<tb.top||ub.bottom>tb.bottom)tree.scrollTop+=ub.top-tb.top-36;}
 }
 function folderList(){return [...(state.folders||[])].sort((a,b)=>(a.order_index||0)-(b.order_index||0));}
 function folderName(id){return folderList().find(f=>f.id===id)?.name||'';}
@@ -280,6 +304,7 @@ document.addEventListener('click',async event=>{
     if(action==='templates')return navigate('templates');
     if(action==='backup')return navigate('backup');
     if(action==='open-group')return navigate('group',target.dataset.id);
+    if(action==='side-folder'){const key=target.dataset.key,list=sideFolders();saveSideFolders(list.includes(key)?list.filter(k=>k!==key):[...list,key]);render();return;}
     if(action==='edit-group-info'){closeGroupMenu();return groupModal(true,target.dataset.id);}
     if(action==='open-template')return navigate('template',target.dataset.id);
     if(action==='group-menu'){const id=target.dataset.id;const same=openMenu&&openMenu.dataset.for===id;closeGroupMenu();if(!same)groupMenu(id,target);return;}

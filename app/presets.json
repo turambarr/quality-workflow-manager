@@ -3745,6 +3745,123 @@
         }
       ],
       "folder": "2026项目组·一般级"
+    },
+    {
+      "id": "unit-01",
+      "name": "全校",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-02",
+      "name": "科研院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-03",
+      "name": "人事处",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-04",
+      "name": "财务处",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-05",
+      "name": "档案馆",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-06",
+      "name": "信通院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-07",
+      "name": "电子院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-08",
+      "name": "计算机院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-09",
+      "name": "网安院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-10",
+      "name": "人工智能院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-11",
+      "name": "智工院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-12",
+      "name": "集成电路院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
+    },
+    {
+      "id": "unit-13",
+      "name": "物理院",
+      "teacher": "",
+      "description": "全校质量管理单元",
+      "folder": "2026全校管理",
+      "template": "preset-school",
+      "onboard": true
     }
   ],
   "folders": [
