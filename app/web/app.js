@@ -88,7 +88,7 @@ function folderTreeHtml(){
   const open=new Set(sideFolders()),groups=state.groups.filter(g=>!g.archived),folders=state.folders||[],unfiled=groups.filter(g=>!g.folder_id);
   const rows=folders.map(f=>{
     const list=groups.filter(g=>g.folder_id===f.id),key='f:'+f.id,isOpen=open.has(key),active=list.some(g=>g.id===ui.groupId);
-    return `<div class="tree-group"><button class="tree-folder ${isOpen?'is-open':''} ${active?'has-active':''}" data-action="side-folder" data-key="${esc(key)}" aria-expanded="${isOpen}"><span class="tree-caret">${icon('chevron')}</span><span class="tree-name">${esc(f.name)}</span><span class="tree-count">${list.length||''}</span></button>${isOpen?`<div class="tree-units">${list.length?list.map(treeUnit).join(''):'<div class="tree-empty">还没有单元</div>'}</div>`:''}</div>`;
+    return `<div class="tree-group"><button class="tree-folder ${isOpen?'is-open':''} ${active?'has-active':''}" data-action="side-folder" data-key="${esc(key)}" data-drag-folder="${esc(f.id)}" data-folder-drop="${esc(f.id)}" draggable="true" aria-expanded="${isOpen}"><span class="tree-caret">${icon('chevron')}</span><span class="tree-name">${esc(f.name)}</span><span class="tree-count">${list.length||''}</span></button>${isOpen?`<div class="tree-units">${list.length?list.map(treeUnit).join(''):'<div class="tree-empty">还没有单元</div>'}</div>`:''}</div>`;
   }).join('');
   const unfiledRow=unfiled.length?`<div class="tree-group"><button class="tree-folder ${open.has('u')?'is-open':''}" data-action="side-folder" data-key="u" aria-expanded="${open.has('u')}"><span class="tree-caret">${icon('chevron')}</span><span class="tree-name">未分类</span><span class="tree-count">${unfiled.length}</span></button>${open.has('u')?`<div class="tree-units">${unfiled.map(treeUnit).join('')}</div>`:''}</div>`:'';
   return `<div class="side-section side-scroll"><div class="nav-label">文件夹</div><div class="folder-tree">${rows}${unfiledRow}</div></div>`;
@@ -126,6 +126,7 @@ function render(){
       ${folderTreeHtml()}
       ${recentHtml()}
       <div class="sidebar-bottom"><button class="nav-item ${ui.view==='backup'?'active':''}" data-action="backup">${icon('save')}数据与备份</button><div class="local-note"><span class="dot"></span>记录保存在本机</div></div>
+      <div class="sidebar-resize" id="sidebar-resize" role="separator" aria-orientation="vertical" aria-label="拖动调整侧栏宽度" title="拖动调整侧栏宽度，双击复位"></div>
     </aside>
     <main id="main" class="main ${['group','template'].includes(ui.view)?'project-main':''}" tabindex="-1"><div class="topbar"><div class="breadcrumbs"><button class="crumb-root" data-action="groups">工作空间</button>${icon('chevron')}${crumbTrail(current)}</div><div class="topbar-notice">使用过程中请遵守：涉密信息不上网，上网信息不涉密</div><div class="topbar-right">${topbarActions(current)}<nav class="mobile-nav" aria-label="主导航">${iconButton('groups','项目组','grid')}${iconButton('templates','分级模板','flow')}${iconButton('favorites','收藏夹','star')}${iconButton('notify','生成通知','bell')}${iconButton('backup','数据与备份','save')}</nav></div></div>
     ${ui.view==='groups'?renderGroups():ui.view==='templates'?renderTemplates():ui.view==='backup'?renderBackup():ui.view==='favorites'?renderFavorites():renderWorkspace()}
@@ -144,6 +145,33 @@ function render(){
   const tree=$('.side-scroll'),activeUnit=tree?tree.querySelector('.tree-unit.active'):null;
   if(tree&&activeUnit){const tb=tree.getBoundingClientRect(),ub=activeUnit.getBoundingClientRect();if(ub.top<tb.top||ub.bottom>tb.bottom)tree.scrollTop+=ub.top-tb.top-36;}
 }
+const SIDE_W_KEY='quality-sidebar-width';
+function applySideWidth(){let w=0;try{w=parseInt(localStorage.getItem(SIDE_W_KEY)||'0',10)}catch(error){}if(w>0)document.documentElement.style.setProperty('--side-w',Math.max(180,Math.min(380,w))+'px');}
+function resetSideWidth(){try{localStorage.removeItem(SIDE_W_KEY)}catch(error){}document.documentElement.style.removeProperty('--side-w');}
+async function reorderFolders(fromId,toId){
+  const list=folderList().map(f=>f.id);const from=list.indexOf(fromId),to=list.indexOf(toId);
+  if(from<0||to<0||from===to)return;
+  list.splice(to,0,list.splice(from,1)[0]);
+  for(let i=0;i<list.length;i++){const current=folderList().find(f=>f.id===list[i]);if(!current||current.order_index===i)continue;await mutate(`/folders/${encodeURIComponent(list[i])}`,{order_index:i},'PUT');}
+  render();toast('文件夹顺序已更新');
+}
+let dragFolderId=null;
+document.addEventListener('dragstart',event=>{const el=event.target.closest('[data-drag-folder]');if(!el)return;dragFolderId=el.dataset.dragFolder;event.dataTransfer.effectAllowed='move';try{event.dataTransfer.setData('text/plain',dragFolderId);}catch(error){}el.classList.add('is-dragging');});
+document.addEventListener('dragend',event=>{const el=event.target.closest('[data-drag-folder]');if(el)el.classList.remove('is-dragging');document.querySelectorAll('.is-drop-target').forEach(node=>node.classList.remove('is-drop-target'));dragFolderId=null;});
+document.addEventListener('dragover',event=>{const target=event.target.closest('[data-folder-drop]');if(!target||!dragFolderId)return;event.preventDefault();target.classList.add('is-drop-target');});
+document.addEventListener('dragleave',event=>{const target=event.target.closest('[data-folder-drop]');if(target)target.classList.remove('is-drop-target');});
+document.addEventListener('drop',async event=>{const target=event.target.closest('[data-folder-drop]');if(!target||!dragFolderId)return;event.preventDefault();target.classList.remove('is-drop-target');const from=dragFolderId,to=target.dataset.folderDrop;dragFolderId=null;if(from===to)return;try{await reorderFolders(from,to);}catch(error){toast(error.message);}});
+document.addEventListener('pointerdown',event=>{
+  if(!event.target.closest('#sidebar-resize'))return;
+  event.preventDefault();
+  const sidebar=$('.sidebar'),startWidth=sidebar?sidebar.offsetWidth:216,startX=event.clientX;
+  document.body.classList.add('resizing-sidebar');
+  const move=moveEvent=>{const width=Math.max(180,Math.min(380,startWidth+moveEvent.clientX-startX));document.documentElement.style.setProperty('--side-w',width+'px');};
+  const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);document.body.classList.remove('resizing-sidebar');const width=sidebar?sidebar.offsetWidth:startWidth;try{localStorage.setItem(SIDE_W_KEY,String(Math.round(width)));}catch(error){}};
+  window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
+});
+document.addEventListener('dblclick',event=>{if(event.target.closest('#sidebar-resize'))resetSideWidth();});
+applySideWidth();
 function folderList(){return [...(state.folders||[])].sort((a,b)=>(a.order_index||0)-(b.order_index||0));}
 function folderName(id){return folderList().find(f=>f.id===id)?.name||'';}
 function groupRecordCount(g){return (g.nodes||[]).reduce((a,n)=>a+(n.records?.length||0),0);}
@@ -164,7 +192,7 @@ function folderSections(){
   const folders=folderList(),live=pool.filter(g=>!g.archived);
   const sections=folders.map(f=>{
     const groups=live.filter(g=>g.folder_id===f.id);
-    return `<section class="folder-section"><div class="folder-heading"><div class="folder-heading-name">${icon('folder')}<h2>${esc(f.name)}</h2><span class="folder-count">${groups.length} 个项目组</span></div><div class="folder-actions">${iconButton('rename-folder','重命名文件夹','edit',`data-id="${esc(f.id)}"`)}${iconButton('delete-folder','删除文件夹','archive',`data-id="${esc(f.id)}"`)}</div></div>${groups.length?`<div class="group-grid">${groups.map(groupCard).join('')}</div>`:'<p class="folder-empty">还没有项目组。新建项目组时可以选择这个文件夹。</p>'}</section>`;
+    return `<section class="folder-section"><div class="folder-heading" data-folder-drop="${esc(f.id)}" data-drag-folder="${esc(f.id)}" draggable="true"><div class="folder-heading-name"><span class="drag-grip" aria-hidden="true" title="拖动排序">${icon('dots')}</span>${icon('folder')}<h2>${esc(f.name)}</h2><span class="folder-count">${groups.length} 个项目组</span></div><div class="folder-actions">${iconButton('rename-folder','重命名文件夹','edit',`data-id="${esc(f.id)}"`)}${iconButton('delete-folder','删除文件夹','archive',`data-id="${esc(f.id)}"`)}</div></div>${groups.length?`<div class="group-grid">${groups.map(groupCard).join('')}</div>`:'<p class="folder-empty">还没有项目组。新建项目组时可以选择这个文件夹。</p>'}</section>`;
   }).join('');
   const loose=live.filter(g=>!folders.some(f=>f.id===g.folder_id));
   const looseSection=`<section class="folder-section"><div class="folder-heading"><div class="folder-heading-name">${icon('grid')}<h2>${folders.length?'未分类':'全部项目组'}</h2><span class="folder-count">${loose.length} 个项目组</span></div></div><div class="group-grid">${loose.map(groupCard).join('')}${addGroupCard}</div></section>`;

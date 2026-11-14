@@ -541,6 +541,20 @@ class MigrationTest(unittest.TestCase):
             finally:
                 store.close()
 
+    def test_folder_order_can_be_changed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            store = Store(folder, presets_path=Path(__file__).with_name("empty_presets.json"))
+            try:
+                a = store.mutate("POST", ["folders"], {"name": "甲"})
+                b = store.mutate("POST", ["folders"], {"name": "乙"})
+                ids = {f["name"]: f["id"] for f in b["folders"]}
+                store.mutate("PUT", ["folders", ids["乙"]], {"order_index": 0})
+                store.mutate("PUT", ["folders", ids["甲"]], {"order_index": 1})
+                state = store.state()
+                self.assertEqual([f["name"] for f in state["folders"]], ["乙", "甲"])
+            finally:
+                store.close()
+
     def test_existing_database_upgrade_preserves_groups_and_history(self):
         with tempfile.TemporaryDirectory() as folder:
             path, snapshot = create_legacy_database(folder)
@@ -548,7 +562,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "9")
+                self.assertEqual(state["storage"]["schema_version"], "10")
                 original = next(g for g in state["groups"] if g["name"] == "原老师")
                 self.assertEqual(len(state["groups"]), 14)  # 原组 + 13 个全校单元
                 self.assertEqual(original["teacher"], "")
@@ -579,7 +593,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "9")
+                self.assertEqual(state["storage"]["schema_version"], "10")
                 self.assertFalse(state["groups"][0]["archived"])
                 self.assertEqual(state["groups"][0]["folder_id"], "old-folder")
                 self.assertEqual(state["folders"][0]["name"], "旧文件夹")
@@ -595,7 +609,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "9")
+                self.assertEqual(state["storage"]["schema_version"], "10")
                 group = state["groups"][0]
                 self.assertEqual(group["name"], "四老师")
                 self.assertEqual(group["teacher"], "")
@@ -611,7 +625,7 @@ class MigrationTest(unittest.TestCase):
             store = Store(folder)
             try:
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "9")
+                self.assertEqual(state["storage"]["schema_version"], "10")
                 records = state["groups"][0]["nodes"][0]["records"]
                 self.assertEqual([r["note"] for r in records], ["下午", "复查"])
                 self.assertEqual([r["day"] for r in records], ["2026-10-03", "2026-10-05"])
@@ -633,7 +647,7 @@ class MigrationTest(unittest.TestCase):
             try:
                 store.restore_bytes(source.read_bytes())
                 state = store.state()
-                self.assertEqual(state["storage"]["schema_version"], "9")
+                self.assertEqual(state["storage"]["schema_version"], "10")
                 records = state["groups"][0]["nodes"][0]["records"]
                 self.assertEqual([r["day"] for r in records], ["2026-10-03", "2026-10-05"])
                 self.assertEqual([r["note"] for r in records], ["下午", "复查"])
@@ -675,7 +689,7 @@ class MigrationTest(unittest.TestCase):
                 store.mutate("POST", ["groups"], {"name": "恢复前项目"})
                 before = copy.deepcopy(store.state()["groups"])
                 state = store.restore_bytes(path.read_bytes())
-                self.assertEqual(state["storage"]["schema_version"], "9")
+                self.assertEqual(state["storage"]["schema_version"], "10")
                 self.assertEqual(state["groups"][0]["nodes"][0]["records"], [dict(snapshot, day="2026-11-02")])
                 backups = list((Path(target) / "backups").glob("恢复前-*.sqlite3"))
                 self.assertEqual(len(backups), 1)

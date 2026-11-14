@@ -344,3 +344,28 @@ textarea.input.notify-text{margin-top:2px;min-height:300px;max-height:52vh;resiz
 .side-scroll .nav-label{z-index:3}
 .folder-tree .tree-folder{position:sticky;top:26px;z-index:2;background:var(--sidebar)}
 .folder-tree .tree-folder:hover{background:#e9e5da}
+/* 顶栏提示再大两号 */
+.topbar-notice{font-size:17px}
+@media(max-width:1200px){.topbar-notice{font-size:15px}}
+@media(max-width:950px){.topbar-notice{font-size:14px}}
+@media(max-width:600px){.topbar-notice{font-size:13px}}
+/* 侧栏可拖动调解宽度 */
+.shell{grid-template-columns:var(--side-w,216px) minmax(0,1fr)}
+@media(max-width:1200px){.shell{grid-template-columns:var(--side-w,185px) minmax(0,1fr)}}
+@media(max-width:950px){.shell{grid-template-columns:var(--side-w,160px) minmax(0,1fr)}}
+.sidebar{position:relative}
+.sidebar-resize{position:absolute;top:0;right:-2px;width:8px;height:100%;cursor:col-resize;z-index:8;background:transparent}
+.sidebar-resize::after{content:'';position:absolute;top:0;bottom:0;right:3px;width:1px;background:transparent;transition:background .15s ease}
+.sidebar-resize:hover::after{background:var(--accent)}
+body.resizing-sidebar{cursor:col-resize;user-select:none}
+body.resizing-sidebar .sidebar-resize::after{background:var(--accent)}
+/* 文件夹拖动排序 */
+.drag-grip{display:inline-flex;align-items:center;flex:none;margin-right:-2px;color:#c3b9a6;cursor:grab}
+.drag-grip .icon{width:14px;height:14px}
+.folder-heading[draggable="true"]{cursor:grab}
+.folder-heading[draggable="true"]:active{cursor:grabbing}
+.tree-folder[draggable="true"]{cursor:pointer}
+.is-dragging{opacity:.45}
+.is-drop-target{outline:1.5px dashed var(--accent);outline-offset:3px;border-radius:10px}
+.brand-name{text-wrap:balance}
+.drag-grip .icon{transform:rotate(90deg)}

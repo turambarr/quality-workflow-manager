@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 STATUSES = ("未开始", "进行中", "待检查", "需修改", "已完成", "不涉及")
-SCHEMA_VERSION = "9"
+SCHEMA_VERSION = "10"
 MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
 
@@ -173,10 +173,10 @@ class Store:
             self._drop_legacy_triggers(self.db)
         existing = self.db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         previous = existing[0] if existing else None
-        if existing and existing[0] not in ("1", "2", "3", "4", "5", "6", "7", "8", SCHEMA_VERSION):
+        if existing and existing[0] not in ("1", "2", "3", "4", "5", "6", "7", "8", "9", SCHEMA_VERSION):
             self.db.close()
             raise AppError("数据库版本与当前程序不兼容。", 409)
-        if existing and existing[0] in ("1", "2", "3", "4", "5", "6", "7", "8"):
+        if existing and existing[0] in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
             self._save_automatic_backup("升级前")
         self._migrate_database(self.db)
         preset_file = Path(presets_path) if presets_path else Path(__file__).resolve().parent / "presets.json"
@@ -214,7 +214,7 @@ class Store:
     def _migrate_database(db):
         version_row = db.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
         version = version_row[0] if version_row else "1"
-        if version not in ("1", "2", "3", "4", "5", "6", "7", "8", SCHEMA_VERSION):
+        if version not in ("1", "2", "3", "4", "5", "6", "7", "8", "9", SCHEMA_VERSION):
             raise AppError("数据库版本与当前程序不兼容。", 409)
         if version == SCHEMA_VERSION:
             return
@@ -250,6 +250,12 @@ class Store:
             # 版本 6：一条记录对应一个检查日期，同一天再次保存时更新当天的记录。
             if version in ("1", "2", "3", "4", "5"):
                 Store._migrate_records_to_days(db)
+            # 版本 10：清掉早期手工建立的“2026项目组”文件夹，里面的单元转入未分类，记录不动。
+            if version in ("1", "2", "3", "4", "5", "6", "7", "8", "9"):
+                legacy = db.execute("SELECT id FROM folders WHERE TRIM(name)='2026项目组'").fetchone()
+                if legacy:
+                    db.execute("UPDATE groups SET folder_id=NULL WHERE folder_id=?", (legacy[0],))
+                    db.execute("DELETE FROM folders WHERE id=?", (legacy[0],))
             db.execute("INSERT OR REPLACE INTO metadata VALUES ('schema_version', ?)", (SCHEMA_VERSION,))
 
     @staticmethod
@@ -759,10 +765,15 @@ class Store:
         row = self.db.execute("SELECT * FROM folders WHERE id=?", (fid,)).fetchone()
         if row is None:
             raise AppError("找不到这个文件夹。", 404)
-        name = text(data.get("name", row["name"]), "文件夹名称", True, 200)
-        if self.db.execute("SELECT 1 FROM folders WHERE name=? AND id<>?", (name, fid)).fetchone():
-            raise AppError("已经有同名文件夹。")
-        self.db.execute("UPDATE folders SET name=? WHERE id=?", (name, fid))
+        name = row["name"]
+        if "name" in data:
+            name = text(data.get("name"), "文件夹名称", True, 200)
+            if self.db.execute("SELECT 1 FROM folders WHERE name=? AND id<>?", (name, fid)).fetchone():
+                raise AppError("已经有同名文件夹。")
+        order = row["order_index"]
+        if "order_index" in data:
+            order = sequence_index(data.get("order_index"))
+        self.db.execute("UPDATE folders SET name=?, order_index=? WHERE id=?", (name, order, fid))
 
     def _delete_folder(self, fid):
         if self.db.execute("SELECT 1 FROM folders WHERE id=?", (fid,)).fetchone() is None:
@@ -889,7 +900,7 @@ class Store:
                 if candidate.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise AppError("备份文件不完整，无法恢复。")
                 version_row = candidate.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
-                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", "6", "7", "8", SCHEMA_VERSION):
+                if version_row is None or version_row[0] not in ("1", "2", "3", "4", "5", "6", "7", "8", "9", SCHEMA_VERSION):
                     raise AppError("这个备份的版本与当前程序不兼容。")
                 candidate.execute("PRAGMA query_only=OFF")
                 self._drop_legacy_triggers(candidate)
