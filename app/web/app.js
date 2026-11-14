@@ -45,7 +45,7 @@ const button = (action, label, glyph, cls='', attrs='') => `<button type="button
 const iconButton = (action, label, glyph, attrs='') => `<button type="button" class="icon-btn" data-action="${action}" aria-label="${esc(label)}" title="${esc(label)}" ${attrs}>${icon(glyph)}</button>`;
 let state = {groups:[],templates:[]};
 let ui = {view:'groups',groupId:null,templateId:null,nodeId:null,tab:'overview',version:null,edit:false,search:'',mode:'work',scope:null,expanded:[],dirExpanded:[],folderId:null,showArchived:false,nodeSearch:'',statusFilter:'',zoom:1,panX:45,panY:45,dirty:false};
-let busy = false, toastTimer, dragState = null, suppressClick = false, modalOrigin = null, lastRenderedNode = null;
+let busy = false, toastTimer, dragState = null, suppressClick = false, modalOrigin = null, lastRenderedNode = null, lastRenderedFlow = null, preFocusScroll = null;
 let actor = '';
 try { actor = localStorage.getItem('quality-author') || ''; } catch (_) {}
 const group = () => state.groups.find(g => g.id === ui.groupId);
@@ -112,10 +112,12 @@ function topbarActions(current){
 }
 function render(){
   const current=flow();
-  const oldDirectory=$('#directory-items'),oldProcess=$('.process-scroll');
-  const dirScroll=oldDirectory?{top:oldDirectory.scrollTop,left:oldDirectory.scrollLeft}:{top:0,left:0};
+  const oldDirectory=$('#directory-items'),oldProcess=$('.process-scroll'),oldTree=$('.side-scroll');
+  const treeScroll=preFocusScroll?.tree??(oldTree?oldTree.scrollTop:0);
+  const sameFlow=lastRenderedFlow===(ui.groupId||ui.templateId);
+  const dirScroll=preFocusScroll?.dir||(sameFlow&&oldDirectory?{top:oldDirectory.scrollTop,left:oldDirectory.scrollLeft}:{top:0,left:0});
   const keepProcess=!!oldProcess&&ui.nodeId===lastRenderedNode,processScroll=keepProcess?oldProcess.scrollTop:0;
-  lastRenderedNode=ui.nodeId;
+  lastRenderedNode=ui.nodeId;lastRenderedFlow=ui.groupId||ui.templateId;
   const collapsed=sidebarCollapsed();
   $('#app').innerHTML=`<div class="shell ${collapsed?'is-collapsed':''}">
     <aside class="sidebar" aria-label="主导航">
@@ -137,10 +139,14 @@ function render(){
       else if(row.bottom>box.bottom)nextDirectory.scrollTop+=row.bottom-box.bottom+4;
       if(row.left<box.left)nextDirectory.scrollLeft-=box.left-row.left+4;
       else if(row.right>box.right)nextDirectory.scrollLeft+=row.right-box.right+4;}}
+  preFocusScroll=null;
   const nextProcess=$('.process-scroll');
   if(nextProcess&&keepProcess)nextProcess.scrollTop=processScroll;
-  const tree=$('.side-scroll'),activeUnit=tree?tree.querySelector('.tree-unit.active'):null;
-  if(tree&&activeUnit){const tb=tree.getBoundingClientRect(),ub=activeUnit.getBoundingClientRect();if(ub.top<tb.top||ub.bottom>tb.bottom)tree.scrollTop+=ub.top-tb.top-36;}
+  const tree=$('.side-scroll');
+  if(tree){tree.scrollTop=treeScroll;const activeUnit=tree.querySelector('.tree-unit.active');
+    if(activeUnit){const tb=tree.getBoundingClientRect(),ub=activeUnit.getBoundingClientRect();
+      if(ub.top<tb.top)tree.scrollTop-=tb.top-ub.top+8;
+      else if(ub.bottom>tb.bottom)tree.scrollTop+=ub.bottom-tb.bottom+8;}}
 }
 const SIDE_W_KEY='quality-sidebar-width';
 function applySideWidth(){let w=0;try{w=parseInt(localStorage.getItem(SIDE_W_KEY)||'0',10)}catch(error){}if(w>0)document.documentElement.style.setProperty('--side-w',Math.max(180,Math.min(380,w))+'px');}
@@ -320,6 +326,12 @@ function templateInputRow(t){return `<div class="template-edit-row" data-templat
 function edgeModal(){const ns=childrenOf(flow(),ui.scope);showModal('设置节点连接',`<div class="modal-body"><p class="muted small">连接用于提示先后关系，各节点仍可独立记录进展。</p><form id="edge-form"><div class="field-row"><div><label class="form-label" for="edge-source">从节点</label><select class="input" id="edge-source" name="source" required>${ns.map(n=>`<option value="${esc(n.id)}">${esc(n.title)}</option>`).join('')}</select></div><div><label class="form-label" for="edge-target">连接到</label><select class="input" id="edge-target" name="target" required>${ns.map((n,i)=>`<option value="${esc(n.id)}" ${i===1?'selected':''}>${esc(n.title)}</option>`).join('')}</select></div></div><div class="error-box" id="edge-error" role="alert" style="margin-top:12px"></div><div class="form-actions"><button class="btn primary" type="submit" ${ns.length<2?'disabled':''}>${icon('link')}添加连接</button></div></form><div>${(flow().edges||[]).filter(e=>ns.some(n=>n.id===e.source)&&ns.some(n=>n.id===e.target)).map(edge=>`<div class="edge-row"><span>${esc(ns.find(n=>n.id===edge.source)?.title||'已归档节点')}</span>${icon('arrow')}<span>${esc(ns.find(n=>n.id===edge.target)?.title||'已归档节点')}</span>${iconButton('delete-edge','移除连接','close',`data-id="${esc(edge.id)}"`)}</div>`).join('')||'<p class="muted small">还没有连接。可以根据实际工作安排添加。</p>'}</div></div>`,button('close-modal','完成',null),true);}
 function archivesModal(){const ns=flow().nodes.filter(n=>n.archived);showModal('已归档的节点',`<div class="modal-body"><p class="small muted">节点的历次检查继续保留，恢复后可以再次查看和填写。</p>${ns.map(n=>`<div class="archive-row"><div><p>${esc(n.title)}</p><small>${n.records?.length||0} 次检查</small></div>${button('restore-node','恢复',null,'small-btn',`data-id="${esc(n.id)}"`)}</div>`).join('')||'<p class="muted">暂无已归档节点。</p>'}</div>`,button('close-modal','关闭',null));}
 
+document.addEventListener('pointerdown',event=>{
+  const tree=event.target.closest('.side-scroll'),dir=event.target.closest('#directory-items');
+  if(tree)preFocusScroll={tree:tree.scrollTop};
+  else if(dir)preFocusScroll={dir:{top:dir.scrollTop,left:dir.scrollLeft}};
+  else preFocusScroll=null;
+},true);
 document.addEventListener('click',async event=>{
   const target=event.target.closest('[data-action]');if(openMenu&&!event.target.closest('.popover-menu')&&!event.target.closest('[data-action="group-menu"]'))closeGroupMenu();if(!target||target.disabled)return;const action=target.dataset.action;
   if(['new-group','edit-group','new-template','edit-template-meta','save-as-template','new-node','edit-node','edges','archives'].includes(action)&&!mayLeave())return;
