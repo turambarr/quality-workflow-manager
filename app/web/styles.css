@@ -369,3 +369,25 @@ body.resizing-sidebar .sidebar-resize::after{background:var(--accent)}
 .is-drop-target{outline:1.5px dashed var(--accent);outline-offset:3px;border-radius:10px}
 .brand-name{text-wrap:balance}
 .drag-grip .icon{transform:rotate(90deg)}
+/* 侧栏收起为图标栏（DeepSeek 式） */
+.brand{position:relative}
+.sidebar-toggle{position:absolute;top:0;right:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:0;border-radius:7px;background:none;color:#a39a88;cursor:pointer}
+.sidebar-toggle:hover{background:#e9e5da;color:var(--ink)}
+.sidebar-toggle .icon{width:16px;height:16px}
+.shell.is-collapsed{grid-template-columns:64px minmax(0,1fr)}
+.is-collapsed .brand{flex-direction:column;align-items:center;gap:10px;padding-top:2px}
+.is-collapsed .brand-text{display:none}
+.is-collapsed .sidebar-toggle{position:static;width:28px;height:28px;margin:0}
+.is-collapsed .nav-label,.is-collapsed .nav-text,.is-collapsed .nav-count,.is-collapsed .side-section,.is-collapsed .local-note{display:none}
+.is-collapsed .sidebar{padding-inline:10px;gap:10px}
+.is-collapsed .nav-item{justify-content:center;padding:9px 0}
+.is-collapsed .sidebar-bottom .nav-item{justify-content:center;padding:9px 0}
+.is-collapsed .sidebar-resize{display:none}
+/* 最近按时间分组 */
+.recent-block{display:flex;flex-direction:column;gap:1px}
+.recent-block+.recent-block{margin-top:8px}
+.recent-day{padding:2px 8px 3px;font-size:10.5px;color:#a39a88;letter-spacing:.02em}
+.recent-group{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.recent-group::before{display:none}
+.recent-group{padding:7px 10px;border-radius:7px;color:var(--ink);font-size:12.5px}
+.recent-group.active{background:var(--accent-soft);color:var(--accent-dark);font-weight:600}
