@@ -5,6 +5,7 @@ import logging
 import sys
 import threading
 import webbrowser
+from pathlib import Path
 
 from server import create_server
 
@@ -15,6 +16,17 @@ def main(argv=None):
     parser.add_argument("--data-dir", help="指定本地数据目录")
     parser.add_argument("--port", type=int, default=0, help="指定本地端口，默认自动分配")
     args = parser.parse_args(argv)
+
+    if getattr(sys, "frozen", False):
+        # 记下程序位置，升级包据此找到要替换的文件夹。
+        try:
+            from backend import default_data_dir
+
+            data_dir = Path(args.data_dir) if args.data_dir else default_data_dir()
+            data_dir.mkdir(parents=True, exist_ok=True)
+            (data_dir / "install.txt").write_text(sys.executable, encoding="utf-8")
+        except Exception:
+            logging.warning("无法记录程序安装位置", exc_info=True)
 
     server = create_server(port=args.port, data_dir=args.data_dir)
     url = "http://127.0.0.1:{}/".format(server.server_address[1])
