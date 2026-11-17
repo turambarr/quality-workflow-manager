@@ -5,12 +5,11 @@ if ($env:OS -ne "Windows_NT") {
 
 Push-Location $PSScriptRoot
 try {
-    if (-not (Test-Path "dist\质量节点\质量节点.exe")) {
-        Write-Host "没有找到已生成的程序，先运行 build_windows.ps1。"
+    if (-not (Test-Path ".venv\Scripts\python.exe") -or -not (Test-Path "dist\质量节点\质量节点.exe")) {
+        Write-Host "先运行 build_windows.ps1 生成程序与打包环境。"
         & "$PSScriptRoot\build_windows.ps1"
         if ($LASTEXITCODE -ne 0) { throw "生成程序失败。" }
     }
-    if (-not (Test-Path ".venv\Scripts\python.exe")) { throw "没有找到打包环境，请先运行 build_windows.ps1。" }
 
     & ".venv\Scripts\python.exe" -m PyInstaller --noconfirm --clean --onefile --windowed --name "升级程序" upgrade.py
     if ($LASTEXITCODE -ne 0) { throw "生成升级程序失败。" }

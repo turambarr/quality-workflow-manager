@@ -7,6 +7,8 @@
     升级程序.exe --package 升级包目录 --target 现有程序目录 --yes --no-launch
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
