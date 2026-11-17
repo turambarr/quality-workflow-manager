@@ -44,6 +44,10 @@ class UpgradeTest(unittest.TestCase):
     def test_manifest_falls_back_when_missing(self):
         self.assertEqual(upgrade.read_manifest(self.root / "pkg"), {})
 
+    def test_package_inside_target_is_detected(self):
+        self.assertTrue(upgrade.is_inside(self.target / "升级包" / "x", self.target))
+        self.assertFalse(upgrade.is_inside(self.build, self.target))
+
     def test_find_target_uses_explicit_path(self):
         self.assertEqual(upgrade.find_target(self.target), self.target)
 

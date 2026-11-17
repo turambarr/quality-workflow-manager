@@ -119,6 +119,14 @@ def stop_running(exe_name: str):
     time.sleep(0.6)
 
 
+def is_inside(child: Path, parent: Path) -> bool:
+    try:
+        child.resolve().relative_to(parent.resolve())
+        return True
+    except (ValueError, OSError):
+        return False
+
+
 def swap_folder(target: Path, build: Path, exe_name: str) -> Path:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     backup = target.with_name(f"{target.name}-旧-{stamp}")
@@ -182,6 +190,14 @@ def main(argv=None) -> int:
             return 1
         target_exe = candidates[0]
         exe_name = target_exe.name
+
+    if is_inside(build, target):
+        text_dialog(
+            "升级包放在了要替换的程序文件夹里面。\n"
+            "请把升级包解压到桌面、D 盘或 U 盘等别的目录，再双击升级程序。",
+            error=True,
+        )
+        return 1
 
     version = manifest.get("version", "")
     if not args.yes and not ask_yes_no(
